@@ -125,34 +125,17 @@ function handleLoginSuccess() {
     startBridge();
     mainWindow.loadFile(path.join(__dirname, 'loading.html'));
 
-    const targetUrl = 'http://localhost:3000';
-    let retryCount = 0;
+    // Loading Remote App (GitHub Pages)
+    const targetUrl = 'https://srunaic.github.io/design-ai-agent-support';
+    logToFile(`Loading remote app from: ${targetUrl}`);
 
-    const serverCheckInterval = setInterval(async () => {
-        try {
-            logToFile(`Checking server status (Attempt ${++retryCount})...`);
-            const client = new net.Socket();
-            client.setTimeout(1000);
-
-            client.connect(3000, '127.0.0.1', () => {
-                client.destroy();
-                logToFile('Server detected! Loading web view.');
-                clearInterval(serverCheckInterval);
-                mainWindow.loadURL(targetUrl);
-            });
-
-            client.on('error', () => {
-                client.destroy();
-            });
-
-            if (retryCount > 60) { // 1분 동안 못찾으면 중지
-                logToFile('Server check timeout (1 min). Stopping.');
-                clearInterval(serverCheckInterval);
-            }
-        } catch (e) {
-            logToFile(`Check interval error: ${e.message}`);
-        }
-    }, 2000);
+    // No need to check localhost port anymore. Just load the URL.
+    setTimeout(() => {
+        mainWindow.loadURL(targetUrl).catch(err => {
+            logToFile(`Failed to load remote URL: ${err.message}`);
+            mainWindow.loadFile(path.join(__dirname, 'loading.html')); // Fallback
+        });
+    }, 1000);
 }
 
 // IPC Handlers

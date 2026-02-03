@@ -16,7 +16,7 @@ class DesignBridge {
 
     private connect() {
         console.log('Attempting to connect to Bridge...');
-        this.ws = new WebSocket('ws://localhost:8080');
+        this.ws = new WebSocket('ws://127.0.0.1:8080');
 
         this.ws.onopen = () => {
             console.log('Connected to Desktop Agent');
