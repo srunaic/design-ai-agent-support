@@ -13,8 +13,10 @@
             "https://srunaic.github.io"
         ],
         "devAllowedDomains": [
-            "localhost",
-            "127.0.0.1"
+            "http://localhost:8080",
+            "http://127.0.0.1:8080",
+            "ws://localhost:8080",
+            "ws://127.0.0.1:8080"
         ]
     }
 }
