@@ -133,11 +133,72 @@ npm start
 
 ## 📋 지원 요소 타입
 
-| 타입 | 설명 | 속성 |
-|------|------|------|
-| `frame` | 프레임(컨테이너) | name, width, height, x, y |
-| `rectangle` | 사각형 | name, width, height, x, y, fill |
-| `text` | 텍스트 | name, content, x, y, fontSize, fill |
+### 🔷 기본 도형
+| 타입 | 설명 | 주요 속성 |
+|------|------|----------|
+| `rectangle` | 사각형 | width, height, x, y, fill, radius |
+| `circle` / `ellipse` | 원/타원 | size, x, y, fill |
+| `line` | 선 | width, x, y, stroke, strokeWeight |
+| `text` | 텍스트 | content, fontSize, x, y, fill, fontWeight |
+
+### 🎨 UI 컴포넌트
+| 타입 | 설명 | 주요 속성 |
+|------|------|----------|
+| `button` | 버튼 | label, width, height, fill, textColor, radius |
+| `input` / `textfield` | 입력창 | placeholder, width, height, fill, borderColor |
+| `card` | 카드 | title, subtitle, width, height, fill, radius |
+| `badge` / `chip` / `tag` | 뱃지/태그 | label, fill, textColor |
+| `avatar` | 아바타 (프로필 이미지) | size, fill |
+| `icon` | 아이콘 플레이스홀더 | icon, size, fill |
+| `image` / `placeholder` | 이미지 플레이스홀더 | width, height, fill, radius |
+| `divider` | 구분선 | width, height, fill |
+
+### 📱 네비게이션
+| 타입 | 설명 | 주요 속성 |
+|------|------|----------|
+| `navbar` / `header` | 상단 네비게이션 바 | title, fill, height |
+| `tabbar` / `bottomnav` | 하단 탭바 | tabs (배열), fill, height |
+| `statusbar` | iOS 상태바 | time, fill |
+| `homeindicator` | iOS 홈 인디케이터 | fill |
+
+### 🎛️ 폼 요소
+| 타입 | 설명 | 주요 속성 |
+|------|------|----------|
+| `toggle` / `switch` | 토글 스위치 | active (true/false) |
+| `checkbox` | 체크박스 | checked (true/false) |
+| `radio` | 라디오 버튼 | selected (true/false) |
+| `slider` | 슬라이더 | value (0-100), width |
+| `progress` / `progressbar` | 프로그레스 바 | value (0-100), fill |
+
+### 📦 레이아웃 & 피드백
+| 타입 | 설명 | 주요 속성 |
+|------|------|----------|
+| `list_item` / `listitem` | 리스트 아이템 | title, subtitle, height |
+| `modal` / `dialog` | 모달 다이얼로그 | title, width, height |
+| `toast` / `snackbar` | 토스트 메시지 | message, fill |
+| `skeleton` / `shimmer` | 로딩 스켈레톤 | width, height, radius |
+| `fab` / `floating_button` | 플로팅 액션 버튼 | icon, size, fill |
+
+### 📱 예제: 완전한 로그인 화면
+```json
+{
+  "command": "create_wireframe",
+  "description": "로그인 화면",
+  "elements": [
+    {"type": "statusbar", "fill": "#FFFFFF"},
+    {"type": "navbar", "title": "로그인", "y": 44},
+    {"type": "avatar", "size": 80, "x": 147, "y": 120},
+    {"type": "input", "placeholder": "이메일", "x": 37, "y": 240, "width": 300},
+    {"type": "input", "placeholder": "비밀번호", "x": 37, "y": 300, "width": 300},
+    {"type": "button", "label": "로그인", "x": 37, "y": 380, "width": 300, "fill": "#4F46E5"},
+    {"type": "divider", "y": 460, "width": 300, "x": 37},
+    {"type": "text", "content": "또는 소셜 로그인", "x": 140, "y": 480, "fontSize": 12, "fill": "#9CA3AF"},
+    {"type": "button", "label": "Google로 계속하기", "x": 37, "y": 520, "width": 300, "fill": "#FFFFFF", "textColor": "#1F2937"},
+    {"type": "tabbar", "tabs": ["홈", "검색", "알림", "설정"]},
+    {"type": "homeindicator"}
+  ]
+}
+```
 
 ---
 

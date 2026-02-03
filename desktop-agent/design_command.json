@@ -1,0 +1,82 @@
+{
+    "command": "create_wireframe",
+    "description": "로그인 페이지 와이어프레임",
+    "elements": [
+        {
+            "type": "frame",
+            "name": "LoginPage",
+            "width": 375,
+            "height": 667,
+            "x": 0,
+            "y": 0
+        },
+        {
+            "type": "text",
+            "name": "Logo",
+            "content": "🔐 Design Supporter",
+            "x": 100,
+            "y": 80,
+            "fontSize": 24
+        },
+        {
+            "type": "rectangle",
+            "name": "EmailInput",
+            "width": 300,
+            "height": 48,
+            "x": 37,
+            "y": 200,
+            "fill": "#F5F5F5"
+        },
+        {
+            "type": "text",
+            "name": "EmailPlaceholder",
+            "content": "이메일을 입력하세요",
+            "x": 50,
+            "y": 215,
+            "fontSize": 14
+        },
+        {
+            "type": "rectangle",
+            "name": "PasswordInput",
+            "width": 300,
+            "height": 48,
+            "x": 37,
+            "y": 270,
+            "fill": "#F5F5F5"
+        },
+        {
+            "type": "text",
+            "name": "PasswordPlaceholder",
+            "content": "비밀번호를 입력하세요",
+            "x": 50,
+            "y": 285,
+            "fontSize": 14
+        },
+        {
+            "type": "rectangle",
+            "name": "LoginButton",
+            "width": 300,
+            "height": 50,
+            "x": 37,
+            "y": 360,
+            "fill": "#4F46E5"
+        },
+        {
+            "type": "text",
+            "name": "LoginButtonText",
+            "content": "로그인",
+            "x": 160,
+            "y": 375,
+            "fontSize": 16,
+            "fill": "#FFFFFF"
+        },
+        {
+            "type": "text",
+            "name": "SignupLink",
+            "content": "계정이 없으신가요? 회원가입",
+            "x": 110,
+            "y": 440,
+            "fontSize": 12
+        }
+    ]
+}
