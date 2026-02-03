@@ -10,7 +10,7 @@
     "networkAccess": {
         "allowedDomains": [
             "https://www.figma.com",
-            "srunaic.github.io"
+            "https://srunaic.github.io"
         ],
         "devAllowedDomains": [
             "localhost",
