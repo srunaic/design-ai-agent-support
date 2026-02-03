@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Connecting...</title>
+    <style>
+        body {
+            background: #020617;
+            color: #f8fafc;
+            font-family: sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #6366f1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        h2 {
+            color: #6366f1;
+            margin: 0 0 10px;
+            font-weight: 600;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .hint {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #475569;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h2>디자인 서포터 서버 연결 중...</h2>
+        <p>웹뷰 서버(localhost:3000)가 준비되기를 기다리고 있습니다.</p>
+
+        <div class="hint">
+            <strong>도움말:</strong> 터미널에서 <code>npm run dev</code> 명령어가<br>
+            정상적으로 실행 중인지 확인해 주세요.
+        </div>
+    </div>
+</body>
+
+</html>

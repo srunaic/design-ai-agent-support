@@ -1,0 +1,222 @@
+{
+    "layout": "Modern Minimal Dashboard",
+    "style": "Clean Flat",
+    "actions": [
+        {
+            "type": "RECT",
+            "y": 0,
+            "x": 0,
+            "width": 375,
+            "height": 812,
+            "color": {
+                "r": 0.98,
+                "g": 0.98,
+                "b": 0.99
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "Dashboard",
+            "y": 60,
+            "x": 24,
+            "size": 28,
+            "color": {
+                "r": 0.1,
+                "g": 0.1,
+                "b": 0.1
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 120,
+            "x": 24,
+            "width": 327,
+            "height": 140,
+            "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "Total Revenue",
+            "y": 144,
+            "x": 48,
+            "size": 14,
+            "color": {
+                "r": 0.4,
+                "g": 0.4,
+                "b": 0.4
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "$124,500",
+            "y": 170,
+            "x": 48,
+            "size": 32,
+            "color": {
+                "r": 0.1,
+                "g": 0.1,
+                "b": 0.1
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 220,
+            "x": 48,
+            "width": 80,
+            "height": 24,
+            "color": {
+                "r": 0.9,
+                "g": 0.95,
+                "b": 0.9
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "+12.5%",
+            "y": 224,
+            "x": 60,
+            "size": 12,
+            "color": {
+                "r": 0.1,
+                "g": 0.6,
+                "b": 0.3
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "Recent Activity",
+            "y": 300,
+            "x": 24,
+            "size": 18,
+            "color": {
+                "r": 0.1,
+                "g": 0.1,
+                "b": 0.1
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 340,
+            "x": 24,
+            "width": 327,
+            "height": 72,
+            "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 356,
+            "x": 40,
+            "width": 40,
+            "height": 40,
+            "color": {
+                "r": 0.95,
+                "g": 0.95,
+                "b": 0.95
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "New Project Started",
+            "y": 356,
+            "x": 96,
+            "size": 14,
+            "color": {
+                "r": 0.1,
+                "g": 0.1,
+                "b": 0.1
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "2 mins ago",
+            "y": 380,
+            "x": 96,
+            "size": 12,
+            "color": {
+                "r": 0.6,
+                "g": 0.6,
+                "b": 0.6
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 424,
+            "x": 24,
+            "width": 327,
+            "height": 72,
+            "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 440,
+            "x": 40,
+            "width": 40,
+            "height": 40,
+            "color": {
+                "r": 0.95,
+                "g": 0.95,
+                "b": 0.95
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "Design Review",
+            "y": 440,
+            "x": 96,
+            "size": 14,
+            "color": {
+                "r": 0.1,
+                "g": 0.1,
+                "b": 0.1
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "1 hour ago",
+            "y": 464,
+            "x": 96,
+            "size": 12,
+            "color": {
+                "r": 0.6,
+                "g": 0.6,
+                "b": 0.6
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 720,
+            "x": 24,
+            "width": 327,
+            "height": 56,
+            "color": {
+                "r": 0.1,
+                "g": 0.1,
+                "b": 0.1
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "Create New Item",
+            "y": 740,
+            "x": 130,
+            "size": 16,
+            "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+            }
+        }
+    ]
+}

@@ -1,0 +1,62 @@
+<div style="padding: 20px; font-family: sans-serif; background: %230f172a; color: white;">
+  <h3 style="color: %236366f1;">Design Supporter</h3>
+  <p style="font-size: 12px; color: %2394a3b8;">AI Agent is ready to support your UI design.</p>
+  <hr style="border: 0.5px solid %23334155; margin: 20px 0;">
+
+  <div id="status" style="font-size: 11px; margin-bottom: 10px;">Connecting to Bridge...</div>
+  <div id="log"
+    style="font-size: 10px; color: #64748b; height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+
+    function log(msg) {
+      const div = document.createElement('div');
+      div.textContent = `> ${msg}`;
+      logEl.prepend(div);
+    }
+
+    let socket;
+    function connect() {
+      socket = new WebSocket('ws://127.0.0.1:8080'); // Use IP to avoid DNS issues
+
+      socket.onopen = () => {
+        statusEl.textContent = '● Connected to Manager';
+        statusEl.style.color = '#10b981';
+        log('Connected to Design Supporter Bridge');
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'DESIGN_COMMAND') {
+            log(`Executing: ${data.payload.action}`);
+            parent.postMessage({ pluginMessage: { type: 'create-ui', payload: data.payload } }, '*');
+          }
+        } catch (e) {
+          log('Error parsing message');
+        }
+      };
+
+      socket.onclose = () => {
+        statusEl.textContent = '○ Disconnected from Manager';
+        statusEl.style.color = '#ef4444';
+        log('Disconnected. Retrying in 3s...');
+        setTimeout(connect, 3000);
+      };
+
+      socket.onerror = (err) => {
+        log('Connection Error');
+      };
+    }
+
+    connect();
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      // Handle messages from code.ts if needed
+    };
+  </script>
+</div>

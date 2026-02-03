@@ -1,0 +1,28 @@
+{
+  "name": "desktop-agent",
+  "version": "1.0.0",
+  "description": "Desktop Agent for Design Supporter - The Hands",
+  "main": "main.cjs",
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.supporter.hands",
+    "productName": "Design Supporter",
+    "win": {
+      "target": "portable"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "dependencies": {
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}
