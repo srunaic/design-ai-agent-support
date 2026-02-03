@@ -32,13 +32,34 @@
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'DESIGN_COMMAND') {
-            log(`Executing: ${data.payload.action}`);
-            parent.postMessage({ pluginMessage: { type: 'create-ui', payload: data.payload } }, '*');
+            log(`Executing: ${data.payload.command || data.payload.description || 'Design Command'}`);
+            // Convert elements to actions format expected by code.js
+            const actions = (data.payload.elements || []).map(el => {
+              if (el.type === 'frame') {
+                return { type: 'FRAME', ...el };
+              } else if (el.type === 'rectangle') {
+                return { type: 'RECT', width: el.width, height: el.height, x: el.x, y: el.y, color: hexToRgb(el.fill) };
+              } else if (el.type === 'text') {
+                return { type: 'TEXT', content: el.content, size: el.fontSize, x: el.x, y: el.y, color: hexToRgb(el.fill) };
+              }
+              return el;
+            });
+            parent.postMessage({ pluginMessage: { type: 'create-ui', payload: { actions, layout: data.payload.description } } }, '*');
           }
         } catch (e) {
-          log('Error parsing message');
+          log('Error parsing message: ' + e.message);
         }
       };
+
+      function hexToRgb(hex) {
+        if (!hex) return null;
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+          r: parseInt(result[1], 16) / 255,
+          g: parseInt(result[2], 16) / 255,
+          b: parseInt(result[3], 16) / 255
+        } : null;
+      }
 
       socket.onclose = () => {
         statusEl.textContent = '○ Disconnected from Manager';
