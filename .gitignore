@@ -9,4 +9,4 @@ build/
 .DS_Store
 *.log
 *.lock
-package-lock.json
+
