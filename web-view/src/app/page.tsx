@@ -204,6 +204,13 @@ export default function Dashboard() {
                                                         타이틀 이미지 FHD 최적화
                                                     </button>
                                                     <button
+                                                        onClick={() => bridge?.executeTool('photoshop', 'execute_script', { scriptPath: 'd:/Github/Design_Supporter/desktop-agent/painting_stages.jsx' })}
+                                                        className="px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-[1.5rem] font-bold shadow-xl shadow-purple-900/20 transition-all flex items-center gap-3 active:scale-95 animate-pulse"
+                                                    >
+                                                        <Sparkles size={20} />
+                                                        단계별 페인팅 가동 (Draft)
+                                                    </button>
+                                                    <button
                                                         onClick={() => setShowSettings(!showSettings)}
                                                         className="p-4 glass-card rounded-2xl text-slate-400 hover:text-white transition-all active:scale-95"
                                                     >
