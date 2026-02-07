@@ -3,9 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const net = require('net');
 const { WebSocketServer } = require('ws');
+const http = require('http');
 
 let mainWindow;
 let wss;
+let assetServer;
 
 const CONFIG_PATH = path.join(app.getPath('userData'), 'supporter_config.json');
 const LOG_PATH = path.join(app.getPath('userData'), 'supporter_debug.log');
@@ -192,12 +194,48 @@ ipcMain.on('open-log-folder', () => {
     }
 });
 
+function startAssetServer() {
+    if (assetServer) return;
+    logToFile('Starting Asset HTTP Server on port 8081...');
+    assetServer = http.createServer((req, res) => {
+        // CORS 헤더 추가
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+        const decodedPath = decodeURIComponent(req.url);
+        const relativePath = decodedPath.replace('/assets/', '');
+        const targetPath = path.join(ASSETS_PATH, relativePath);
+
+        if (fs.existsSync(targetPath) && fs.lstatSync(targetPath).isFile()) {
+            const ext = path.extname(targetPath).toLowerCase();
+            const contentType = {
+                '.png': 'image/png',
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.mp4': 'video/mp4',
+                '.gif': 'image/gif'
+            }[ext] || 'application/octet-stream';
+
+            res.writeHead(200, { 'Content-Type': contentType });
+            fs.createReadStream(targetPath).pipe(res);
+        } else {
+            res.writeHead(404);
+            res.end('Not Found');
+        }
+    });
+
+    assetServer.listen(8081, () => {
+        logToFile('Asset HTTP Server running on port 8081');
+    });
+}
+
 function startBridge() {
     if (wss) {
         logToFile('Bridge Server already running');
         return;
     }
     logToFile('Starting Bridge Server on port 8080...');
+    startAssetServer();
     wss = new WebSocketServer({ port: 8080 });
     console.log('Bridge Server started on port 8080');
 
