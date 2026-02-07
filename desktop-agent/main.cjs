@@ -411,20 +411,30 @@ async function handleExecuteTool(payload, ws) {
             }
         } else if (action === 'execute_script') {
             const appPath = findAdobeAppPath('Photoshop');
-            const { scriptPath } = data;
-            if (appPath && fs.existsSync(scriptPath)) {
-                const { exec } = require('child_process');
-                // 포토샵 실행 파일에 스크립트 경로를 인자로 전달하여 실행
-                exec(`"${appPath}" "${scriptPath}"`, (err) => {
-                    if (err) {
-                        logToFile(`Photoshop script error: ${err.message}`);
-                        ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: `스크립트 실행 실패: ${err.message}` } }));
-                    } else {
-                        ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: 'Photoshop 작업이 수행되었습니다.' } }));
-                    }
-                });
+            let { scriptPath } = data;
+
+            if (appPath && scriptPath) {
+                // 경로 정규화 (역슬래시로 변환)
+                const normalizedScriptPath = path.resolve(scriptPath).replace(/\//g, '\\');
+
+                if (fs.existsSync(normalizedScriptPath)) {
+                    const { exec } = require('child_process');
+                    logToFile(`Executing Photoshop script: "${appPath}" -r "${normalizedScriptPath}"`);
+
+                    // 포토샵 실행 파일에 -r 플래그와 정규화된 스크립트 경로 전달
+                    exec(`"${appPath}" -r "${normalizedScriptPath}"`, (err) => {
+                        if (err) {
+                            logToFile(`Photoshop script error: ${err.message}`);
+                            ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: `스크립트 실행 실패: ${err.message}` } }));
+                        } else {
+                            ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: 'Photoshop 작업이 수행되었습니다.' } }));
+                        }
+                    });
+                } else {
+                    ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: `스크립트 파일을 찾을 수 없습니다: ${normalizedScriptPath}` } }));
+                }
             } else {
-                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'Photoshop 또는 스크립트 파일을 찾을 수 없습니다.' } }));
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'Photoshop 경로가 지정되지 않았습니다.' } }));
             }
         }
     } else if (tool === 'illustrator') {
