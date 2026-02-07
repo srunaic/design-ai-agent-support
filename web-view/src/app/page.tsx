@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Layout, Video, Activity, Image as ImageIcon, Sparkles, ChevronRight, User, Loader2, Send, Zap } from 'lucide-react';
+import { Layout, Video, Activity, Image as ImageIcon, Sparkles, ChevronRight, User, Loader2, Send, Zap, Film } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { bridge, ToolStatus } from '../lib/bridge';
 import { getCoaching, CoachingResponse } from '../lib/coach';
@@ -11,16 +11,19 @@ const STEPS = [
     { id: 2, title: '영상 편집', icon: Video, desc: '홍보 영상 구성을 설계합니다.', tool: 'premiere' },
     { id: 3, title: '모션 그래픽', icon: Activity, desc: '생동감 있는 효과를 추가합니다.', tool: 'after_effects' },
     { id: 4, title: '에셋 생성', icon: ImageIcon, desc: 'AI로 이미지를 생성합니다.', tool: 'image_gen' },
+    { id: 5, title: '애니메이션 생성', icon: Film, desc: 'AI로 영상 에셋을 제작합니다.', tool: 'animation_gen' },
 ];
 
 export default function Dashboard() {
     const [currentStep, setCurrentStep] = useState(1);
     const [status, setStatus] = useState<ToolStatus | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
     useEffect(() => {
         setStatus(null);
         setPreviewUrl(null);
+        setVideoUrl(null);
     }, [currentStep]);
 
     useEffect(() => {
@@ -30,6 +33,8 @@ export default function Dashboard() {
                     setStatus(data.payload);
                 } else if (data.type === 'PREVIEW_UPDATE') {
                     setPreviewUrl(data.payload.url);
+                } else if (data.type === 'VIDEO_UPDATE') {
+                    setVideoUrl(data.payload.url);
                 }
             });
         }
@@ -38,6 +43,16 @@ export default function Dashboard() {
     const handleRunTool = () => {
         const step = STEPS[currentStep - 1];
         bridge?.executeTool(step.tool, 'launch');
+    };
+
+    const handleDownload = () => {
+        if (!videoUrl) return;
+        const link = document.createElement('a');
+        link.href = videoUrl;
+        link.download = `antigravity_render_${Date.now()}.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
@@ -110,7 +125,15 @@ export default function Dashboard() {
                             </div>
 
                             <div className="flex gap-2">
-                                <button className="p-3 glass-card rounded-2xl text-slate-400 hover:text-white"><Activity size={18} /></button>
+                                {videoUrl && (
+                                    <button
+                                        onClick={handleDownload}
+                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl hover:bg-indigo-600 hover:text-white transition-all text-xs font-bold"
+                                    >
+                                        <Activity size={14} />
+                                        MP4 DOWNLOAD
+                                    </button>
+                                )}
                                 <button className="p-3 glass-card rounded-2xl text-slate-400 hover:text-white"><Zap size={18} /></button>
                             </div>
                         </header>
@@ -118,7 +141,17 @@ export default function Dashboard() {
                         <div className="flex-1 flex items-center justify-center p-10">
                             {/* Live Preview Area (Ready for Antigravity Results) */}
                             <div className="w-full max-w-4xl aspect-video rounded-[2.5rem] bg-black/60 border border-white/5 shadow-2xl flex flex-col items-center justify-center relative group overflow-hidden">
-                                {previewUrl ? (
+                                {videoUrl ? (
+                                    <motion.video
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        src={videoUrl}
+                                        controls
+                                        autoPlay
+                                        loop
+                                        className="w-full h-full object-contain p-4"
+                                    />
+                                ) : previewUrl ? (
                                     <motion.img
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}

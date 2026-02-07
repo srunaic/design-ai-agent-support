@@ -1,7 +1,7 @@
-<div style="padding: 20px; font-family: sans-serif; background: %230f172a; color: white;">
-  <h3 style="color: %236366f1;">Design Supporter</h3>
-  <p style="font-size: 12px; color: %2394a3b8;">AI Agent is ready to support your UI design.</p>
-  <hr style="border: 0.5px solid %23334155; margin: 20px 0;">
+<div style="padding: 20px; font-family: sans-serif; background: #0f172a; color: white;">
+  <h3 style="color: #6366f1;">Design Supporter</h3>
+  <p style="font-size: 12px; color: #94a3b8;">AI Agent is ready to support your UI design.</p>
+  <hr style="border: 0.5px solid #334155; margin: 20px 0;">
 
   <div id="status" style="font-size: 11px; margin-bottom: 10px;">Connecting to Bridge...</div>
   <div id="log"
@@ -33,18 +33,15 @@
           const data = JSON.parse(event.data);
           if (data.type === 'DESIGN_COMMAND') {
             log(`Executing: ${data.payload.command || data.payload.description || 'Design Command'}`);
-            // Convert elements to actions format expected by code.js
-            const actions = (data.payload.elements || []).map(el => {
-              if (el.type === 'frame') {
-                return { type: 'FRAME', ...el };
-              } else if (el.type === 'rectangle') {
-                return { type: 'RECT', width: el.width, height: el.height, x: el.x, y: el.y, color: hexToRgb(el.fill) };
-              } else if (el.type === 'text') {
-                return { type: 'TEXT', content: el.content, size: el.fontSize, x: el.x, y: el.y, color: hexToRgb(el.fill) };
-              }
-              return el;
-            });
+            // Simply pass elements through to code.js to avoid data loss
+            const actions = data.payload.elements || [];
             parent.postMessage({ pluginMessage: { type: 'create-ui', payload: { actions, layout: data.payload.description } } }, '*');
+          }
+
+          // Handle image insertion
+          if (data.type === 'INSERT_IMAGE') {
+            log(`Inserting image: ${data.payload.name || 'Image'}`);
+            parent.postMessage({ pluginMessage: { type: 'insert-image', payload: data.payload } }, '*');
           }
         } catch (e) {
           log('Error parsing message: ' + e.message);

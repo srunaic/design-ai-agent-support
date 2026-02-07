@@ -125,17 +125,40 @@ function handleLoginSuccess() {
     startBridge();
     mainWindow.loadFile(path.join(__dirname, 'loading.html'));
 
-    // Loading Remote App (GitHub Pages)
-    const targetUrl = 'https://srunaic.github.io/design-ai-agent-support';
-    logToFile(`Loading remote app from: ${targetUrl}`);
+    const localUrl = 'http://localhost:3000/design-ai-agent-support';
+    const remoteUrl = 'https://srunaic.github.io/design-ai-agent-support';
 
-    // No need to check localhost port anymore. Just load the URL.
-    setTimeout(() => {
-        mainWindow.loadURL(targetUrl).catch(err => {
-            logToFile(`Failed to load remote URL: ${err.message}`);
-            mainWindow.loadFile(path.join(__dirname, 'loading.html')); // Fallback
+    // 로컬 서버 활성화 여부 체크 후 로드
+    const checkLocalAndLoad = () => {
+        logToFile(`Checking local server at ${localUrl}...`);
+        const client = new net.Socket();
+        client.setTimeout(1000);
+
+        client.on('connect', () => {
+            logToFile('Local dev server detected. Loading locally...');
+            client.destroy();
+            mainWindow.loadURL(localUrl).catch(err => {
+                logToFile(`Fallback to remote due to load error: ${err.message}`);
+                mainWindow.loadURL(remoteUrl);
+            });
         });
-    }, 1000);
+
+        client.on('error', () => {
+            logToFile('Local server not found. Loading remote app...');
+            client.destroy();
+            mainWindow.loadURL(remoteUrl);
+        });
+
+        client.on('timeout', () => {
+            logToFile('Local server check timed out. Loading remote app...');
+            client.destroy();
+            mainWindow.loadURL(remoteUrl);
+        });
+
+        client.connect(3000, '127.0.0.1');
+    };
+
+    setTimeout(checkLocalAndLoad, 1000);
 }
 
 // IPC Handlers
@@ -188,11 +211,14 @@ function startBridge() {
                     handleExecuteTool(payload.payload, ws);
                 } else if (payload.type === 'UPDATE_PREVIEW' || payload.type === 'DESIGN_COMMAND') {
                     // 프리뷰 업데이트 또는 디자인 명령을 모든 클라이언트에게 브로드캐스트
+                    let count = 0;
                     wss.clients.forEach(client => {
                         if (client.readyState === 1) { // WebSocket.OPEN === 1
                             client.send(JSON.stringify({ type: payload.type, payload: payload.payload }));
+                            count++;
                         }
                     });
+                    logToFile(`Broadcasted ${payload.type} to ${count} clients`);
                 }
             } catch (e) {
                 logToFile(`Bridge Message Error: ${e.message}`);
@@ -281,22 +307,52 @@ async function handleExecuteTool(payload, ws) {
         } else if (action === 'apply_motion') {
             ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: '선택한 모션 설정이 프로젝트에 적용되었습니다.' } }));
         }
-    } else if (tool === 'image_gen') {
-        ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'SAVING', message: `${data?.layout || '이미지'} 생성 중...` } }));
+    } else if (tool === 'image_gen' || tool === 'animation_gen') {
+        const isVideo = tool === 'animation_gen';
+        ws.send(JSON.stringify({
+            type: 'TOOL_STATUS',
+            payload: {
+                tool,
+                status: 'RUNNING',
+                message: `${data?.layout || (isVideo ? '애니메이션' : '이미지')} 생성 중...`
+            }
+        }));
 
         setTimeout(async () => {
-            // 실제 폴더 열기
-            if (fs.existsSync(ASSETS_PATH)) {
-                await shell.openPath(ASSETS_PATH);
-            }
-            ws.send(JSON.stringify({
-                type: 'TOOL_STATUS',
-                payload: {
-                    tool,
-                    status: 'COMPLETED',
-                    message: `에셋이 저장되었습니다.\n경로: ${ASSETS_PATH}`
+            // 에셋 폴더 보장 및 열기
+            if (!fs.existsSync(ASSETS_PATH)) fs.mkdirSync(ASSETS_PATH, { recursive: true });
+
+            // 시뮬레이션: 실제 파일이 생성된 것처럼 이벤트를 보냄 
+            // 실제 구현에서는 AI가 에셋 폴더에 파일을 생성한 후 이 경로를 보냄
+            const fileName = isVideo ? 'animation_sample.mp4' : 'preview_sample.png';
+            const sampleUrl = isVideo
+                ? 'https://content.vidyard.com/videos/FmqC4rN9B8_rP9Z9K0z9w/mp4_720p.mp4' // 실제 작동 확인용 샘플 MP4
+                : 'https://via.placeholder.com/1920x1080/4f46e5/ffffff?text=AI+Design+Ready';
+
+            const updateType = isVideo ? 'VIDEO_UPDATE' : 'PREVIEW_UPDATE';
+
+            let count = 0;
+            wss.clients.forEach(client => {
+                if (client.readyState === 1) {
+                    client.send(JSON.stringify({
+                        type: updateType,
+                        payload: { url: sampleUrl, name: fileName }
+                    }));
+
+                    client.send(JSON.stringify({
+                        type: 'TOOL_STATUS',
+                        payload: {
+                            tool,
+                            status: 'COMPLETED',
+                            message: `${isVideo ? '비디오' : '에셋'}가 생성되었습니다.\n경로: ${ASSETS_PATH}`
+                        }
+                    }));
+                    count++;
                 }
-            }));
+            });
+
+            logToFile(`Simulated ${updateType} via ${tool} to ${count} clients`);
+            await shell.openPath(ASSETS_PATH);
         }, 3000);
     }
 }

@@ -16,17 +16,20 @@ if (fs.existsSync(input)) {
 const ws = new WebSocket('ws://localhost:8080');
 
 ws.on('open', () => {
-    try {
-        const payload = JSON.parse(designData);
-        ws.send(JSON.stringify({
-            type: 'DESIGN_COMMAND',
-            payload: payload
-        }));
-        console.log('Design command sent successfully to Figma Bridge');
-    } catch (e) {
-        console.error('Invalid JSON data:', e.message);
-    }
-    setTimeout(() => ws.close(), 500);
+    console.log('Waiting for bridge to stabilize...');
+    setTimeout(() => {
+        try {
+            const payload = JSON.parse(designData);
+            ws.send(JSON.stringify({
+                type: 'DESIGN_COMMAND',
+                payload: payload
+            }));
+            console.log('Design command sent successfully to Figma Bridge');
+        } catch (e) {
+            console.error('Invalid JSON data:', e.message);
+        }
+        setTimeout(() => ws.close(), 500);
+    }, 2000); // 2초 대기
 });
 
 ws.on('error', (err) => {
