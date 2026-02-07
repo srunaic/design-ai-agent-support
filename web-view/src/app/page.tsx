@@ -149,7 +149,7 @@ export default function Dashboard() {
 
                         <div className="flex-1 flex items-center justify-center p-10">
                             {/* Live Preview Area (Ready for Antigravity Results) */}
-                            <div className="w-full max-w-4xl aspect-video rounded-[2.5rem] bg-black/60 border border-white/5 shadow-2xl flex flex-col items-center justify-center relative group overflow-hidden">
+                            <div className="w-full max-w-4xl aspect-video rounded-[2.5rem] bg-black/60 border border-white/5 shadow-2xl flex flex-col items-center justify-center relative group">
                                 {videoUrl ? (
                                     <motion.video
                                         initial={{ opacity: 0 }}
@@ -207,10 +207,10 @@ export default function Dashboard() {
                                                 <AnimatePresence>
                                                     {showSettings && (
                                                         <motion.div
-                                                            initial={{ opacity: 0, y: 10 }}
-                                                            animate={{ opacity: 1, y: 0 }}
-                                                            exit={{ opacity: 0, y: 10 }}
-                                                            className="absolute bottom-24 left-1/2 -translate-x-1/2 w-96 p-6 glass-card rounded-3xl border border-white/10 shadow-2xl z-50"
+                                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                            className="absolute bottom-32 left-1/2 -translate-x-1/2 w-96 p-6 bg-slate-900/95 backdrop-blur-3xl rounded-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100]"
                                                         >
                                                             <h4 className="text-white font-black text-sm mb-4 uppercase tracking-widest flex items-center gap-2">
                                                                 <Settings size={14} className="text-indigo-400" />
