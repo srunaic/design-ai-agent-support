@@ -422,14 +422,10 @@ async function handleExecuteTool(payload, ws) {
                     const { exec } = require('child_process');
                     const tempVbsPath = path.join(process.env.TEMP || '.', `ps_bridge_${Date.now()}.vbs`);
 
-                    // VBScript 내용: 포토샵 COM 객체를 호출하여 지정된 JS 파일을 실행
+                    // VBScript: 역슬래시 하나가 정상입니다. (\\가 아닌 \)
                     const vbsContent = `
-On Error Resume Next
 Set app = CreateObject("Photoshop.Application")
-If Err.Number <> 0 Then
-    WScript.Quit 1
-End If
-app.DoJavaScriptFile "${vbsScriptPath}"
+app.DoJavaScriptFile "${fullPath}"
 If Err.Number <> 0 Then
     WScript.Quit 2
 End If
