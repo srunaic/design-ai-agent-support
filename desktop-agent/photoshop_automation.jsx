@@ -9,7 +9,7 @@ var docName = "Luna_PC_Title";
 var newDoc = app.documents.add(docWidth, docHeight, 72, docName, NewDocumentMode.RGB, DocumentFill.WHITE);
 
 // 2. Define Image Path (Using Absolute Path)
-var imagePath = "d:\\Github\\Design_Supporter\\assets\\Luna_Remake.jpg";
+var imagePath = "d:/Github/Design_Supporter/assets/Luna_Remake.jpg";
 var imageFile = new File(imagePath);
 
 if (imageFile.exists) {

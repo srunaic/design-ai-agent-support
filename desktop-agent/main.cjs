@@ -413,28 +413,57 @@ async function handleExecuteTool(payload, ws) {
             const appPath = findAdobeAppPath('Photoshop');
             let { scriptPath } = data;
 
-            if (appPath && scriptPath) {
-                // 경로 정규화 (역슬래시로 변환)
-                const normalizedScriptPath = path.resolve(scriptPath).replace(/\//g, '\\');
+            if (scriptPath) {
+                // 경로 정규화 (역슬래시로 변환 및 VBS용 이중 역슬래시 처리)
+                const fullPath = path.resolve(scriptPath);
+                const vbsScriptPath = fullPath.replace(/\\/g, '\\\\');
 
-                if (fs.existsSync(normalizedScriptPath)) {
+                if (fs.existsSync(fullPath)) {
                     const { exec } = require('child_process');
-                    logToFile(`Executing Photoshop script: "${appPath}" -r "${normalizedScriptPath}"`);
+                    const tempVbsPath = path.join(process.env.TEMP || '.', `ps_bridge_${Date.now()}.vbs`);
 
-                    // 포토샵 실행 파일에 -r 플래그와 정규화된 스크립트 경로 전달
-                    exec(`"${appPath}" -r "${normalizedScriptPath}"`, (err) => {
-                        if (err) {
-                            logToFile(`Photoshop script error: ${err.message}`);
-                            ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: `스크립트 실행 실패: ${err.message}` } }));
-                        } else {
-                            ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: 'Photoshop 작업이 수행되었습니다.' } }));
-                        }
-                    });
+                    // VBScript 내용: 포토샵 COM 객체를 호출하여 지정된 JS 파일을 실행
+                    const vbsContent = `
+On Error Resume Next
+Set app = CreateObject("Photoshop.Application")
+If Err.Number <> 0 Then
+    WScript.Quit 1
+End If
+app.DoJavaScriptFile "${vbsScriptPath}"
+If Err.Number <> 0 Then
+    WScript.Quit 2
+End If
+WScript.Quit 0
+                    `.trim();
+
+                    try {
+                        fs.writeFileSync(tempVbsPath, vbsContent, { encoding: 'latin1' });
+                        logToFile(`Executing Photoshop via VBS Bridge: ${tempVbsPath} -> ${fullPath}`);
+
+                        exec(`wscript.exe //NoLogo "${tempVbsPath}"`, (err) => {
+                            // 임시 파일 삭제
+                            try { if (fs.existsSync(tempVbsPath)) fs.unlinkSync(tempVbsPath); } catch (e) { }
+
+                            if (err) {
+                                logToFile(`Photoshop VBS error: ${err.message} (Code: ${err.code})`);
+                                let msg = "포토샵 연동 실패";
+                                if (err.code === 1) msg = "포토샵을 찾을 수 없거나 초기화에 실패했습니다.";
+                                else if (err.code === 2) msg = "포토샵 스크립트 실행 중 내부 오류가 발생했습니다.";
+
+                                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: msg } }));
+                            } else {
+                                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: 'Photoshop 작업이 수행되었습니다.' } }));
+                            }
+                        });
+                    } catch (e) {
+                        logToFile(`VBS Creation Error: ${e.message}`);
+                        ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: '브릿지 파일 생성 실패' } }));
+                    }
                 } else {
-                    ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: `스크립트 파일을 찾을 수 없습니다: ${normalizedScriptPath}` } }));
+                    ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: '스크립트 파일을 찾을 수 없습니다.' } }));
                 }
             } else {
-                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'Photoshop 경로가 지정되지 않았습니다.' } }));
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: '스크립트 경로 누락' } }));
             }
         }
     } else if (tool === 'illustrator') {

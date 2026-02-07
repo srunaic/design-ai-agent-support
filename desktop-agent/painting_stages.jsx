@@ -3,7 +3,7 @@
 
 var docWidth = 1920;
 var docHeight = 1080;
-var imagePath = "d:\\Github\\Design_Supporter\\assets\\Luna_Painting_Target.jpg";
+var imagePath = "d:/Github/Design_Supporter/assets/Luna_Painting_Target.jpg";
 var imageFile = new File(imagePath);
 
 if (!imageFile.exists) {
