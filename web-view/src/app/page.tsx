@@ -148,7 +148,6 @@ export default function Dashboard() {
                         </header>
 
                         <div className="flex-1 flex items-center justify-center p-10">
-                            {/* Live Preview Area (Ready for Antigravity Results) */}
                             <div className="w-full max-w-4xl aspect-video rounded-[2.5rem] bg-black/60 border border-white/5 shadow-2xl flex flex-col items-center justify-center relative group">
                                 {videoUrl ? (
                                     <motion.video
@@ -205,7 +204,7 @@ export default function Dashboard() {
                                                     </button>
                                                     <button
                                                         onClick={() => bridge?.executeTool('photoshop', 'execute_script', { scriptPath: 'd:/Github/Design_Supporter/desktop-agent/painting_stages.jsx' })}
-                                                        className="px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-[1.5rem] font-bold shadow-xl shadow-purple-900/20 transition-all flex items-center gap-3 active:scale-95 animate-pulse"
+                                                        className="px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-[1.5rem] font-bold shadow-xl shadow-purple-900/20 transition-all flex items-center gap-3 active:scale-95"
                                                     >
                                                         <Sparkles size={20} />
                                                         단계별 페인팅 가동 (Draft)

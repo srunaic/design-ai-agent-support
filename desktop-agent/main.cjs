@@ -479,7 +479,7 @@ WScript.Quit 0
             payload: {
                 tool,
                 status: 'RUNNING',
-                message: `${data?.layout || (isVideo ? '애니메이션' : '이미지')} 생성 중...`
+                message: isVideo ? '이미지 에셋 분석 및 AI 애니메이션 생성 중...' : `${data?.layout || '이미지'} 생성 중...`
             }
         }));
 
