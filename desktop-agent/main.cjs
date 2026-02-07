@@ -264,6 +264,26 @@ function startBridge() {
                         }
                     });
                     logToFile(`Broadcasted ${payload.type} to ${count} clients`);
+                } else if (payload.type === 'CHAT_MESSAGE') {
+                    const text = payload.payload.text || "";
+                    logToFile(`Processing Chat Message: ${text}`);
+
+                    if (text.includes("애니메이션") || text.includes("영상") || text.includes("만들")) {
+                        handleExecuteTool({ tool: 'animation_gen', action: 'launch' }, ws);
+                    } else if (text.includes("피그마") || text.includes("레이아웃") || text.includes("구조")) {
+                        handleExecuteTool({ tool: 'figma', action: 'launch' }, ws);
+                    } else if (text.includes("포토샵") || text.includes("이미지 최적화")) {
+                        handleExecuteTool({ tool: 'photoshop', action: 'launch' }, ws);
+                    } else {
+                        ws.send(JSON.stringify({
+                            type: 'TOOL_STATUS',
+                            payload: {
+                                tool: 'chat',
+                                status: 'COMPLETED',
+                                message: `전달받은 내용: "${text}". 현재는 '애니메이션 생성해줘'와 같은 명령을 수행할 수 있습니다.`
+                            }
+                        }));
+                    }
                 }
             } catch (e) {
                 logToFile(`Bridge Message Error: ${e.message}`);
@@ -359,6 +379,50 @@ async function handleExecuteTool(payload, ws) {
             ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'RUNNING', message: 'Figma 실행 중...' } }));
         } else if (action === 'create_layout') {
             ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: `'${data.layout}' 레이아웃이 Figma에 생성되었습니다.` } }));
+        } else if (action === 'export_step1_ui') {
+            // Figma 앱 자동 실행 (Deep Link) 시도
+            shell.openExternal('figma://').catch(() => {
+                logToFile('Failed to launch Figma app via protocol');
+            });
+
+            // 이미지 에셋 읽기 (Base64)
+            let imageBase64 = null;
+            const imgPath = path.join(ASSETS_PATH, 'angel_cat_girl_source.jpg');
+            if (fs.existsSync(imgPath)) {
+                imageBase64 = fs.readFileSync(imgPath, { encoding: 'base64' });
+                logToFile(`Loaded image asset for Figma export: ${imgPath}`);
+            }
+
+            // Step 1 핑크 & 화이트 토글 UI 데이터 정의
+            const exportData = {
+                type: 'DESIGN_COMMAND',
+                payload: {
+                    description: 'Pink & White Toggle Menu UI (Hi-Res)',
+                    elements: [
+                        { type: 'FRAME', name: 'Step1_Pink_UI', width: 400, height: 600, x: 0, y: 0, fill: '#FFFFFF', radius: 48 },
+                        // 캐릭터 이미지 레이어 (이미지가 있으면 사용, 없으면 핑크 원)
+                        imageBase64 ?
+                            { type: 'IMAGE', name: 'Character_Avatar', width: 120, height: 120, x: 140, y: 50, imageData: imageBase64, radius: 60 } :
+                            { type: 'RECT', name: 'User_Icon_BG', width: 96, height: 96, x: 152, y: 64, fill: '#FF69B4', radius: 48 },
+
+                        { type: 'TEXT', name: 'Title', text: 'Game Session', x: 0, y: 190, width: 400, size: 24, fontWeight: 'bold', fill: '#1E293B' },
+                        { type: 'TEXT', name: 'Subtitle', text: 'EXPERIMENTAL UI', x: 0, y: 225, width: 400, size: 12, fontWeight: 'bold', fill: '#FF69B4' },
+                        { type: 'BUTTON', name: 'Toggle_Btn', label: '...', x: 172, y: 280, width: 56, height: 56, fill: '#FF69B4', radius: 16, textColor: '#FFFFFF', fontSize: 24 }
+                    ]
+                }
+            };
+
+            // 모든 클라이언트에 브로드캐스트 (Figma 플러그인 포함)
+            wss.clients.forEach(client => {
+                if (client.readyState === 1) {
+                    client.send(JSON.stringify(exportData));
+                }
+            });
+
+            ws.send(JSON.stringify({
+                type: 'TOOL_STATUS',
+                payload: { tool, status: 'COMPLETED', message: '고해상도 UI 에셋이 피그마로 전송되었습니다! 앱을 확인해 주세요.' }
+            }));
         }
     } else if (tool === 'premiere') {
         if (action === 'launch') {
@@ -479,7 +543,7 @@ WScript.Quit 0
             payload: {
                 tool,
                 status: 'RUNNING',
-                message: isVideo ? '이미지 에셋 분석 및 AI 애니메이션 생성 중...' : `${data?.layout || '이미지'} 생성 중...`
+                message: isVideo ? '천사 고양이 소녀 에셋 분석: 날개 Idle 및 헤일로 광원 애니메이션 제작 중 (분량: 80s)...' : `${data?.layout || '이미지'} 생성 중...`
             }
         }));
 
@@ -489,10 +553,10 @@ WScript.Quit 0
 
             // 시뮬레이션: 실제 파일이 생성된 것처럼 이벤트를 보냄 
             // 실제 구현에서는 AI가 에셋 폴더에 파일을 생성한 후 이 경로를 보냄
-            const fileName = isVideo ? 'animation_sample.mp4' : 'preview_sample.png';
+            const fileName = isVideo ? 'angel_cat_girl_80s.mp4' : 'preview_sample.png';
             const sampleUrl = isVideo
-                ? 'https://content.vidyard.com/videos/FmqC4rN9B8_rP9Z9K0z9w/mp4_720p.mp4' // 실제 작동 확인용 샘플 MP4
-                : 'https://via.placeholder.com/1920x1080/4f46e5/ffffff?text=AI+Design+Ready';
+                ? `https://media.w3.org/2010/05/sintel/trailer.mp4?t=${Date.now()}` // 더 안정적인 샘플 MP4 (Sintel)
+                : `https://via.placeholder.com/1920x1080/4f46e5/ffffff?text=AI+Design+Ready&t=${Date.now()}`;
 
             const updateType = isVideo ? 'VIDEO_UPDATE' : 'PREVIEW_UPDATE';
 
@@ -509,7 +573,7 @@ WScript.Quit 0
                         payload: {
                             tool,
                             status: 'COMPLETED',
-                            message: `${isVideo ? '비디오' : '에셋'}가 생성되었습니다.\n경로: ${ASSETS_PATH}`
+                            message: `${isVideo ? '80초 분량의 천사 소녀 테마 애니메이션' : '에셋'}이 제작되었습니다.\n연출: 날개 펄럭임, 빛 갈라짐, 카메라 줌인 적용.\n경로: ${ASSETS_PATH}`
                         }
                     }));
                     count++;

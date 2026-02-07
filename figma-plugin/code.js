@@ -163,6 +163,24 @@ figma.ui.onmessage = async (msg) => {
                             badge.appendChild(bText);
                             currentFrame.appendChild(badge);
                             break;
+                        case 'IMAGE':
+                            try {
+                                const base64 = action.imageData.replace(/^data:image\/\w+;base64,/, '');
+                                const bytes = new Uint8Array(atob(base64).split("").map(c => c.charCodeAt(0)));
+                                const image = figma.createImage(bytes);
+                                node = figma.createRectangle();
+                                node.name = action.name || "Image_" + i;
+                                node.resize(action.width || 256, action.height || 256);
+                                node.x = action.x || 0;
+                                node.y = action.y || 0;
+                                node.fills = [{ type: 'IMAGE', imageHash: image.hash, scaleMode: 'FILL' }];
+                                setCornerRadius(node, action.radius);
+                                currentFrame.appendChild(node);
+                                figma.notify("🖼️ Importing high-res asset...", { timeout: 500 });
+                            } catch (e) {
+                                console.error("Image creation failed", e);
+                            }
+                            break;
                     }
                 }
             }

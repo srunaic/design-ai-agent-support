@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Layout, Video, Activity, Image as ImageIcon, Sparkles, ChevronRight, User, Loader2, Send, Zap, Film, Settings } from 'lucide-react';
+import { Layout, Video, Activity, Image as ImageIcon, Sparkles, ChevronRight, User, Loader2, Send, Zap, Film, Settings, MoreHorizontal, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { bridge, ToolStatus } from '../lib/bridge';
 import { getCoaching, CoachingResponse } from '../lib/coach';
@@ -23,6 +23,10 @@ export default function Dashboard() {
     const [showSettings, setShowSettings] = useState(false);
     const [psPath, setPsPath] = useState('');
     const [aiPath, setAiPath] = useState('');
+    const [chatInput, setChatInput] = useState("");
+    const [isCoachTyping, setIsCoachTyping] = useState(false);
+    const [lastResponse, setLastResponse] = useState("무엇을 도와드릴까요? 디자인 가이드나 애니메이션 생성을 명령해보세요.");
+    const [showStep1Menu, setShowStep1Menu] = useState(false);
 
     const handleSavePaths = () => {
         bridge?.executeTool('config', 'save_adobe_paths', { photoshopPath: psPath, illustratorPath: aiPath });
@@ -40,6 +44,17 @@ export default function Dashboard() {
             bridge.onMessage((data) => {
                 if (data.type === 'TOOL_STATUS') {
                     setStatus(data.payload);
+                    if (data.payload.status === 'RUNNING') {
+                        setIsCoachTyping(true);
+                        setLastResponse(`${data.payload.message}`);
+
+                        // 도구 실행 시 해당 스텝으로 자동 전환
+                        const relevantStep = STEPS.find(s => s.tool === data.payload.tool);
+                        if (relevantStep) setCurrentStep(relevantStep.id);
+                    } else if (data.payload.status === 'COMPLETED') {
+                        setIsCoachTyping(false);
+                        setLastResponse(`작업이 완료되었습니다: ${data.payload.message.split('\n')[0]}`);
+                    }
                 } else if (data.type === 'PREVIEW_UPDATE') {
                     setPreviewUrl(data.payload.url);
                 } else if (data.type === 'VIDEO_UPDATE') {
@@ -54,14 +69,34 @@ export default function Dashboard() {
         bridge?.executeTool(step.tool, 'launch');
     };
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         if (!videoUrl) return;
-        const link = document.createElement('a');
-        link.href = videoUrl;
-        link.download = `antigravity_render_${Date.now()}.mp4`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        try {
+            const response = await fetch(videoUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Antigravity_Animation_80s_${Date.now()}.mp4`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Download failed:', error);
+            // Fallback to simple link
+            window.open(videoUrl, '_blank');
+        }
+    };
+
+    const handleSendMessage = () => {
+        if (!chatInput.trim()) return;
+
+        // 에이전트로 채팅 메시지 전송
+        bridge?.send('CHAT_MESSAGE', { text: chatInput });
+
+        setIsCoachTyping(true);
+        setChatInput("");
     };
 
     return (
@@ -171,7 +206,67 @@ export default function Dashboard() {
                                     <>
                                         <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                                        {currentStep === 6 ? (
+                                        {currentStep === 1 ? (
+                                            <div className="flex flex-col items-center justify-center h-full relative">
+                                                {/* Pink & White Toggle UI Mockup */}
+                                                <div className="bg-white/95 backdrop-blur-xl p-8 rounded-[3rem] shadow-[0_20px_50px_rgba(255,105,180,0.2)] border border-pink-100 flex flex-col items-center gap-6 group">
+                                                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
+                                                        <User size={40} className="text-white" />
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Game Session</h3>
+                                                        <p className="text-pink-500 text-xs font-bold uppercase tracking-widest mt-1">Experimental UI</p>
+                                                    </div>
+
+                                                    {/* Toggle Button */}
+                                                    <button
+                                                        onClick={() => setShowStep1Menu(!showStep1Menu)}
+                                                        className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${showStep1Menu ? 'bg-pink-500 text-white rotate-90' : 'bg-slate-100 text-slate-400 hover:bg-pink-50 hover:text-pink-500'}`}
+                                                    >
+                                                        <MoreHorizontal size={24} />
+                                                    </button>
+
+                                                    <AnimatePresence>
+                                                        {showStep1Menu && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                                                                className="absolute -bottom-36 flex flex-col gap-2 w-48 p-2 bg-white rounded-3xl shadow-2xl border border-pink-50"
+                                                            >
+                                                                <button className="flex items-center gap-3 w-full p-4 hover:bg-pink-50 rounded-2xl transition-colors text-slate-600 hover:text-pink-600 group/btn">
+                                                                    <div className="p-2 bg-slate-50 rounded-xl group-hover/btn:bg-white group-hover/btn:shadow-sm">
+                                                                        <Settings size={16} />
+                                                                    </div>
+                                                                    <span className="text-xs font-black uppercase tracking-wider">Option</span>
+                                                                </button>
+                                                                <button className="flex items-center gap-3 w-full p-4 hover:bg-pink-50 rounded-2xl transition-colors text-slate-600 hover:text-pink-600 group/btn">
+                                                                    <div className="p-2 bg-slate-50 rounded-xl group-hover/btn:bg-white group-hover/btn:shadow-sm">
+                                                                        <Save size={16} />
+                                                                    </div>
+                                                                    <span className="text-xs font-black uppercase tracking-wider">Save</span>
+                                                                </button>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+
+                                                <div className="flex flex-col items-center gap-6">
+                                                    <p className="mt-20 text-[10px] text-pink-500/50 font-black uppercase tracking-[0.3em] animate-pulse">
+                                                        Pink & White Theme Preview
+                                                    </p>
+
+                                                    {/* Export Button */}
+                                                    <button
+                                                        onClick={() => bridge?.executeTool('figma', 'export_step1_ui')}
+                                                        className="mt-4 px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-2xl font-black text-[10px] tracking-widest uppercase shadow-lg shadow-pink-500/30 transition-all active:scale-95 flex items-center gap-3 border border-pink-400/30"
+                                                    >
+                                                        <Layout size={14} />
+                                                        Export to Figma
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : currentStep === 6 ? (
                                             <div className="flex flex-col items-center gap-6">
                                                 <div className="flex items-center justify-center w-20 h-20 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
                                                     <Sparkles size={40} className="animate-pulse" />
@@ -321,27 +416,44 @@ export default function Dashboard() {
                                 </div>
 
                                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
-                                    <div className="p-4 bg-indigo-600/10 rounded-2xl border border-indigo-500/20">
-                                        <Loader2 size={32} className="text-indigo-400 animate-spin" />
+                                    <div className={`p-4 rounded-2xl border transition-all duration-500 ${isCoachTyping ? 'bg-indigo-600/20 border-indigo-500/40 animate-pulse' : 'bg-white/5 border-white/10'}`}>
+                                        {isCoachTyping ? (
+                                            <Loader2 size={32} className="text-indigo-400 animate-spin" />
+                                        ) : (
+                                            <Activity size={32} className="text-indigo-500/50" />
+                                        )}
                                     </div>
                                     <p className="text-sm font-black text-slate-200 leading-tight">
-                                        항시 대기 중...<br />
-                                        <span className="text-indigo-400">Antigravity Agent</span> 실행 후<br />내용을 입력하세요.
-                                    </p>
-                                    <p className="text-[11px] text-slate-500 font-medium max-w-[200px]">
-                                        에이전트에서 생성된 디자인 가이드가 이곳에 실시간으로 표시됩니다.
+                                        {isCoachTyping ? "Antigravity 분석 중..." : "항시 대기 중..."}<br />
+                                        <span className="text-indigo-400 font-medium text-[11px] block mt-2">
+                                            {lastResponse}
+                                        </span>
                                     </p>
                                 </div>
 
                                 <div className="mt-8 pt-6 border-t border-white/5">
-                                    <div className="flex gap-2">
-                                        <div className="flex-1 bg-white/5 border border-white/5 rounded-xl h-10 px-4 flex items-center">
-                                            <span className="text-[10px] text-slate-500 font-bold">Waiting for input...</span>
-                                        </div>
-                                        <button className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/30 opacity-50 cursor-not-allowed">
+                                    <form
+                                        onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                                        className="flex gap-2"
+                                    >
+                                        <input
+                                            type="text"
+                                            value={chatInput}
+                                            onChange={(e) => setChatInput(e.target.value)}
+                                            placeholder="Antigravity에게 명령하세요..."
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-xl h-10 px-4 text-xs text-white placeholder:text-slate-600 outline-none focus:border-indigo-500/50 transition-all font-medium"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!chatInput.trim()}
+                                            className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all active:scale-95 ${chatInput.trim()
+                                                ? 'bg-indigo-600 text-white shadow-indigo-600/30 hover:bg-indigo-500'
+                                                : 'bg-indigo-600/20 text-slate-600 opacity-50 cursor-not-allowed'
+                                                }`}
+                                        >
                                             <Send size={16} />
                                         </button>
-                                    </div>
+                                    </form>
                                 </div>
                             </div>
 
