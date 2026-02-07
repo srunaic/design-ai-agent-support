@@ -333,7 +333,8 @@ function findAdobeAppPath(appName) {
 }
 
 async function handleExecuteTool(payload, ws) {
-    const { tool, action, payload: data } = payload;
+    const { tool, action, data: rawData, payload: legacyData } = payload;
+    const data = rawData || legacyData || {};
     if (tool === 'figma') {
         if (action === 'launch') {
             // 웹 브라우저 대신 Figma 데스크탑 앱 실행 시도 (프로토콜 핸들러 사용)
