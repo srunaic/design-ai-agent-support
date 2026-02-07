@@ -202,9 +202,12 @@ function startAssetServer() {
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
-        const decodedPath = decodeURIComponent(req.url);
-        const relativePath = decodedPath.replace('/assets/', '');
-        const targetPath = path.join(ASSETS_PATH, relativePath);
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const pathname = decodeURIComponent(url.pathname);
+        const fileName = pathname.replace(/^\/assets\//, '');
+        const targetPath = path.join(ASSETS_PATH, fileName);
+
+        logToFile(`Asset Request: ${pathname} -> target: ${targetPath}`);
 
         if (fs.existsSync(targetPath) && fs.lstatSync(targetPath).isFile()) {
             const ext = path.extname(targetPath).toLowerCase();
