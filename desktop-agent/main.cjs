@@ -37,7 +37,11 @@ let config = {
     adminId: 'admin',
     adminPw: 'admin1234',
     figmaPat: '', // Set via Settings UI or config.json
-    figmaFileKey: ''
+    figmaFileKey: '',
+    photoshopPath: '',
+    illustratorPath: '',
+    premierePath: '',
+    afterEffectsPath: ''
 };
 
 // Load Config from File
@@ -281,6 +285,19 @@ if (!fs.existsSync(ASSETS_PATH)) {
 
 // Adobe 프로그램 경로 탐색 유틸리티
 function findAdobeAppPath(appName) {
+    // 1. 수동 설정된 경로가 있는지 먼저 확인
+    const configPathMap = {
+        'Photoshop': config.photoshopPath,
+        'Illustrator': config.illustratorPath,
+        'Premiere Pro': config.premierePath,
+        'After Effects': config.afterEffectsPath
+    };
+
+    if (configPathMap[appName] && fs.existsSync(configPathMap[appName])) {
+        logToFile(`Using manual path for ${appName}: ${configPathMap[appName]}`);
+        return configPathMap[appName];
+    }
+
     const adobeRoot = 'C:\\Program Files\\Adobe';
     if (!fs.existsSync(adobeRoot)) return null;
 
@@ -297,6 +314,10 @@ function findAdobeAppPath(appName) {
                     exePath = path.join(fullDirPath, 'Adobe Premiere Pro.exe');
                 } else if (appName === 'After Effects') {
                     exePath = path.join(fullDirPath, 'Support Files', 'After Effects.exe');
+                } else if (appName === 'Photoshop') {
+                    exePath = path.join(fullDirPath, 'Photoshop.exe');
+                } else if (appName === 'Illustrator') {
+                    exePath = path.join(fullDirPath, 'Support Files', 'Contents', 'Windows', 'Illustrator.exe');
                 }
 
                 if (exePath && fs.existsSync(exePath)) {
@@ -347,6 +368,42 @@ async function handleExecuteTool(payload, ws) {
             }
         } else if (action === 'apply_motion') {
             ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: '선택한 모션 설정이 프로젝트에 적용되었습니다.' } }));
+        }
+    } else if (tool === 'config') {
+        if (action === 'save_adobe_paths') {
+            const { photoshopPath, illustratorPath, premierePath, afterEffectsPath } = data;
+            const updatedConfig = {
+                ...config,
+                photoshopPath: photoshopPath || config.photoshopPath,
+                illustratorPath: illustratorPath || config.illustratorPath,
+                premierePath: premierePath || config.premierePath,
+                afterEffectsPath: afterEffectsPath || config.afterEffectsPath
+            };
+            if (saveConfig(updatedConfig)) {
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: '어도비 경로 설정이 업데이트되었습니다.' } }));
+            } else {
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: '경로 저장 중 오류가 발생했습니다.' } }));
+            }
+        }
+    } else if (tool === 'photoshop') {
+        if (action === 'launch') {
+            const appPath = findAdobeAppPath('Photoshop');
+            if (appPath) {
+                shell.openPath(appPath);
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'RUNNING', message: 'Photoshop 실행 중...' } }));
+            } else {
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'Photoshop을 찾을 수 없습니다. 설정에서 수동으로 경로를 지정해 주세요.' } }));
+            }
+        }
+    } else if (tool === 'illustrator') {
+        if (action === 'launch') {
+            const appPath = findAdobeAppPath('Illustrator');
+            if (appPath) {
+                shell.openPath(appPath);
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'RUNNING', message: 'Illustrator 실행 중...' } }));
+            } else {
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'Illustrator를 찾을 수 없습니다. 설정에서 수동으로 경로를 지정해 주세요.' } }));
+            }
         }
     } else if (tool === 'image_gen' || tool === 'animation_gen') {
         const isVideo = tool === 'animation_gen';

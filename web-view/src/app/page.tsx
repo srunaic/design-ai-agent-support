@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Layout, Video, Activity, Image as ImageIcon, Sparkles, ChevronRight, User, Loader2, Send, Zap, Film } from 'lucide-react';
+import { Layout, Video, Activity, Image as ImageIcon, Sparkles, ChevronRight, User, Loader2, Send, Zap, Film, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { bridge, ToolStatus } from '../lib/bridge';
 import { getCoaching, CoachingResponse } from '../lib/coach';
@@ -12,6 +12,7 @@ const STEPS = [
     { id: 3, title: '모션 그래픽', icon: Activity, desc: '생동감 있는 효과를 추가합니다.', tool: 'after_effects' },
     { id: 4, title: '에셋 생성', icon: ImageIcon, desc: 'AI로 이미지를 생성합니다.', tool: 'image_gen' },
     { id: 5, title: '애니메이션 생성', icon: Film, desc: 'AI로 영상 에셋을 제작합니다.', tool: 'animation_gen' },
+    { id: 6, title: '어도비 연동', icon: Sparkles, desc: '포토샵 및 일러스트레이터와 연결합니다.', tool: 'adobe_connect' },
 ];
 
 export default function Dashboard() {
@@ -19,6 +20,14 @@ export default function Dashboard() {
     const [status, setStatus] = useState<ToolStatus | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [showSettings, setShowSettings] = useState(false);
+    const [psPath, setPsPath] = useState('');
+    const [aiPath, setAiPath] = useState('');
+
+    const handleSavePaths = () => {
+        bridge?.executeTool('config', 'save_adobe_paths', { photoshopPath: psPath, illustratorPath: aiPath });
+        setShowSettings(false);
+    };
 
     useEffect(() => {
         setStatus(null);
@@ -163,7 +172,91 @@ export default function Dashboard() {
                                     <>
                                         <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                                        {status?.status === 'RUNNING' || status?.status === 'SAVING' ? (
+                                        {currentStep === 6 ? (
+                                            <div className="flex flex-col items-center gap-6">
+                                                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                                                    <Sparkles size={40} className="animate-pulse" />
+                                                </div>
+                                                <div className="text-center">
+                                                    <h3 className="text-2xl font-black tracking-tight text-white mb-2 uppercase">Ready for Adobe Sync</h3>
+                                                    <p className="text-slate-400 text-sm font-medium">관리자님의 어도비 도구와 Antigravity를 직접 연결합니다.</p>
+                                                </div>
+                                                <div className="flex gap-4">
+                                                    <button
+                                                        onClick={() => bridge?.executeTool('photoshop', 'launch')}
+                                                        className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] font-bold shadow-xl shadow-blue-900/20 transition-all flex items-center gap-3 active:scale-95"
+                                                    >
+                                                        <ImageIcon size={20} />
+                                                        포토샵 연동하기
+                                                    </button>
+                                                    <button
+                                                        onClick={() => bridge?.executeTool('illustrator', 'launch')}
+                                                        className="px-8 py-4 bg-orange-600 hover:bg-orange-500 text-white rounded-[1.5rem] font-bold shadow-xl shadow-orange-900/20 transition-all flex items-center gap-3 active:scale-95"
+                                                    >
+                                                        <ImageIcon size={20} />
+                                                        일러스트레이터 연동하기
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setShowSettings(!showSettings)}
+                                                        className="p-4 glass-card rounded-2xl text-slate-400 hover:text-white transition-all active:scale-95"
+                                                    >
+                                                        <Settings size={20} />
+                                                    </button>
+                                                </div>
+
+                                                <AnimatePresence>
+                                                    {showSettings && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: 10 }}
+                                                            className="absolute bottom-24 left-1/2 -translate-x-1/2 w-96 p-6 glass-card rounded-3xl border border-white/10 shadow-2xl z-50"
+                                                        >
+                                                            <h4 className="text-white font-black text-sm mb-4 uppercase tracking-widest flex items-center gap-2">
+                                                                <Settings size={14} className="text-indigo-400" />
+                                                                Adobe Path Configuration
+                                                            </h4>
+                                                            <div className="space-y-4">
+                                                                <div>
+                                                                    <label className="text-[10px] text-slate-500 font-black uppercase mb-1 block">Photoshop.exe Path</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={psPath}
+                                                                        onChange={(e) => setPsPath(e.target.value)}
+                                                                        placeholder="C:\...\Photoshop.exe"
+                                                                        className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="text-[10px] text-slate-500 font-black uppercase mb-1 block">Illustrator.exe Path</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={aiPath}
+                                                                        onChange={(e) => setAiPath(e.target.value)}
+                                                                        placeholder="C:\...\Illustrator.exe"
+                                                                        className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs text-white placeholder:text-slate-700 outline-none focus:border-orange-500/50 transition-all"
+                                                                    />
+                                                                </div>
+                                                                <button
+                                                                    onClick={handleSavePaths}
+                                                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition-all active:scale-95 shadow-lg shadow-indigo-900/20"
+                                                                >
+                                                                    APPLY CUSTOM PATHS
+                                                                </button>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        ) : (currentStep === 4 || currentStep === 5) && status ? (
+                                            <div className="flex flex-col items-center gap-6">
+                                                <div className="w-20 h-20 mb-6 mx-auto relative">
+                                                    <div className="absolute inset-0 border-4 border-indigo-500/20 rounded-full" />
+                                                    <div className="absolute inset-0 border-4 border-t-indigo-500 rounded-full animate-spin" />
+                                                </div>
+                                                <p className="text-lg font-bold tracking-tight">{status.message}</p>
+                                            </div>
+                                        ) : status?.status === 'RUNNING' || status?.status === 'SAVING' ? (
                                             <div className="text-center">
                                                 <div className="w-20 h-20 mb-6 mx-auto relative">
                                                     <div className="absolute inset-0 border-4 border-indigo-500/20 rounded-full" />

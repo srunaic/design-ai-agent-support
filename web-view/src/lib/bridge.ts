@@ -58,8 +58,8 @@ class DesignBridge {
         this.listeners.push(callback);
     }
 
-    public executeTool(tool: string, action: string) {
-        this.send('EXECUTE_TOOL', { tool, action });
+    public executeTool(tool: string, action: string, data?: any) {
+        this.send('EXECUTE_TOOL', { tool, action, data });
     }
 }
 
