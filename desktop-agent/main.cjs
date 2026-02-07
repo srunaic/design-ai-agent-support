@@ -294,8 +294,22 @@ function findAdobeAppPath(appName) {
     };
 
     if (configPathMap[appName] && fs.existsSync(configPathMap[appName])) {
-        logToFile(`Using manual path for ${appName}: ${configPathMap[appName]}`);
-        return configPathMap[appName];
+        let manualPath = configPathMap[appName];
+        // 만약 입력된 경로가 디렉토리라면, 기본 실행 파일을 붙여서 확인
+        if (fs.lstatSync(manualPath).isDirectory()) {
+            let potentialExe;
+            if (appName === 'Photoshop') potentialExe = path.join(manualPath, 'Photoshop.exe');
+            else if (appName === 'Illustrator') potentialExe = path.join(manualPath, 'Support Files', 'Contents', 'Windows', 'Illustrator.exe');
+            else if (appName === 'Premiere Pro') potentialExe = path.join(manualPath, 'Adobe Premiere Pro.exe');
+            else if (appName === 'After Effects') potentialExe = path.join(manualPath, 'Support Files', 'After Effects.exe');
+
+            if (potentialExe && fs.existsSync(potentialExe)) {
+                manualPath = potentialExe;
+            }
+        }
+
+        logToFile(`Using resolved manual path for ${appName}: ${manualPath}`);
+        return manualPath;
     }
 
     const adobeRoot = 'C:\\Program Files\\Adobe';
