@@ -394,6 +394,23 @@ async function handleExecuteTool(payload, ws) {
             } else {
                 ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'Photoshop을 찾을 수 없습니다. 설정에서 수동으로 경로를 지정해 주세요.' } }));
             }
+        } else if (action === 'execute_script') {
+            const appPath = findAdobeAppPath('Photoshop');
+            const { scriptPath } = data;
+            if (appPath && fs.existsSync(scriptPath)) {
+                const { exec } = require('child_process');
+                // 포토샵 실행 파일에 스크립트 경로를 인자로 전달하여 실행
+                exec(`"${appPath}" "${scriptPath}"`, (err) => {
+                    if (err) {
+                        logToFile(`Photoshop script error: ${err.message}`);
+                        ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: `스크립트 실행 실패: ${err.message}` } }));
+                    } else {
+                        ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: 'Photoshop 작업이 수행되었습니다.' } }));
+                    }
+                });
+            } else {
+                ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'Photoshop 또는 스크립트 파일을 찾을 수 없습니다.' } }));
+            }
         }
     } else if (tool === 'illustrator') {
         if (action === 'launch') {

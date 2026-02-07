@@ -197,6 +197,13 @@ export default function Dashboard() {
                                                         일러스트레이터 연동하기
                                                     </button>
                                                     <button
+                                                        onClick={() => bridge?.executeTool('photoshop', 'execute_script', { scriptPath: 'd:/Github/Design_Supporter/desktop-agent/photoshop_automation.jsx' })}
+                                                        className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[1.5rem] font-bold shadow-xl shadow-indigo-900/20 transition-all flex items-center gap-3 active:scale-95 animate-pulse"
+                                                    >
+                                                        <Zap size={20} />
+                                                        타이틀 이미지 FHD 최적화
+                                                    </button>
+                                                    <button
                                                         onClick={() => setShowSettings(!showSettings)}
                                                         className="p-4 glass-card rounded-2xl text-slate-400 hover:text-white transition-all active:scale-95"
                                                     >
