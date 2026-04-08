@@ -1,0 +1,83 @@
+export type ToolStatus = {
+    tool: string;
+    status: 'IDLE' | 'RUNNING' | 'SAVING' | 'COMPLETED' | 'ERROR';
+    message: string;
+    progress?: number;
+};
+
+class DesignBridge {
+    private ws: WebSocket | null = null;
+    private listeners: ((data: any) => void)[] = [];
+    private messageQueue: string[] = [];
+
+    constructor() {
+        if (typeof window !== 'undefined') {
+            this.connect();
+        }
+    }
+
+    private connect() {
+        console.log('Attempting to connect to Bridge...');
+        this.ws = new WebSocket('ws://127.0.0.1:8080');
+
+        this.ws.onopen = () => {
+            console.log('Connected to Desktop Agent');
+            (window as any).__bridgeStatus = 'CONNECTED';
+            this.flushQueue();
+        };
+
+        this.ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                this.listeners.forEach(l => l(data));
+            } catch (e) {
+                console.error('Failed to parse bridge message', e);
+            }
+        };
+
+        this.ws.onclose = () => {
+            console.log('Disconnected from Desktop Agent, retrying in 2s...');
+            (window as any).__bridgeStatus = 'DISCONNECTED';
+            setTimeout(() => this.connect(), 2000);
+        };
+
+        this.ws.onerror = (err) => {
+            console.error('Bridge Connection Error', err);
+            (window as any).__bridgeStatus = 'ERROR';
+        };
+    }
+
+    private flushQueue() {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+        while (this.messageQueue.length > 0) {
+            const msg = this.messageQueue.shift();
+            if (msg) this.ws.send(msg);
+        }
+    }
+
+    public send(type: string, payload: any) {
+        const msg = JSON.stringify({ type, payload });
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(msg);
+        } else if (this.ws?.readyState === WebSocket.CONNECTING) {
+            console.warn('Bridge connecting, buffering message...');
+            this.messageQueue.push(msg);
+        } else {
+            const status = this.ws ? this.ws.readyState : 'CLOSED';
+            console.error(`Bridge not connected. Status: ${status}`);
+            alert('에이전트와 연결이 끊겨 있습니다. 잠시 후 다시 시도하거나 프로그램을 재시작해 주세요.');
+        }
+    }
+
+    public onMessage(callback: (data: any) => void) {
+        this.listeners.push(callback);
+    }
+
+    public executeTool(tool: string, action: string, data?: any) {
+        this.send('EXECUTE_TOOL', { tool, action, data });
+    }
+}
+
+export const bridge = typeof window !== 'undefined' ? new DesignBridge() : null;

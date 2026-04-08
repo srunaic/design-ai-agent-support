@@ -1,0 +1,138 @@
+{
+    "layout": "AI Design: Premium Login",
+    "style": "Dark Glassmorphism",
+    "actions": [
+        {
+            "type": "TEXT",
+            "content": "Welcome Back",
+            "y": 100,
+            "x": 100,
+            "size": 32,
+            "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "Sign in to continue your journey",
+            "y": 145,
+            "x": 100,
+            "size": 14,
+            "color": {
+                "r": 0.5,
+                "g": 0.5,
+                "b": 0.6
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "EMAIL",
+            "y": 240,
+            "x": 40,
+            "size": 10,
+            "color": {
+                "r": 0.38,
+                "g": 0.4,
+                "b": 0.94
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 260,
+            "x": 37.5,
+            "width": 300,
+            "height": 56,
+            "color": {
+                "r": 0.08,
+                "g": 0.08,
+                "b": 0.1
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "antigravity@hands.design",
+            "y": 280,
+            "x": 60,
+            "size": 14,
+            "color": {
+                "r": 0.4,
+                "g": 0.4,
+                "b": 0.5
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "PASSWORD",
+            "y": 340,
+            "x": 40,
+            "size": 10,
+            "color": {
+                "r": 0.38,
+                "g": 0.4,
+                "b": 0.94
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 360,
+            "x": 37.5,
+            "width": 300,
+            "height": 56,
+            "color": {
+                "r": 0.08,
+                "g": 0.08,
+                "b": 0.1
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "••••••••••••",
+            "y": 380,
+            "x": 60,
+            "size": 14,
+            "color": {
+                "r": 0.4,
+                "g": 0.4,
+                "b": 0.5
+            }
+        },
+        {
+            "type": "RECT",
+            "y": 480,
+            "x": 37.5,
+            "width": 300,
+            "height": 60,
+            "color": {
+                "r": 0.38,
+                "g": 0.4,
+                "b": 0.94
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "SIGN IN",
+            "y": 500,
+            "x": 155,
+            "size": 16,
+            "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+            }
+        },
+        {
+            "type": "TEXT",
+            "content": "Forgot Password?",
+            "y": 560,
+            "x": 130,
+            "size": 12,
+            "color": {
+                "r": 0.5,
+                "g": 0.5,
+                "b": 0.6
+            }
+        }
+    ]
+}
