@@ -15,6 +15,10 @@ run_nvidia_gpu 를 실행 해줘야지만 compy ui의 여러 모델 llm을 이�
 
 ---
 
+![Uploading image.png…]()
+
+
+
 <a name="한국어"></a>
 ## 🇰🇷 한국어 (Korean)
 
