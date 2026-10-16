@@ -430,7 +430,10 @@ function buildImg2ImgWorkflow(options) {
             "inputs": {
                 "pixels": ["12", 0],
                 "vae": ["1", 2],
-                "tile_size": 512
+                "tile_size": 512,
+                "overlap": 64,
+                "temporal_size": 64,
+                "temporal_overlap": 8
             }
         };
         // 14. KSampler (Refiner Pass) - Optimized for speed
@@ -455,7 +458,10 @@ function buildImg2ImgWorkflow(options) {
             "inputs": {
                 "samples": ["14", 0],
                 "vae": ["1", 2],
-                "tile_size": 512
+                "tile_size": 512,
+                "overlap": 64,
+                "temporal_size": 64,
+                "temporal_overlap": 8
             }
         };
         // 16. Save Refined Result
@@ -577,10 +583,19 @@ function buildAnimationWorkflow(options) {
     const actualSeed = seed === -1 ? Math.floor(Math.random() * 1e15) : seed;
 
     // SDXL Enforcement Logic
-    const isSDXL = modelName.toLowerCase().includes("xl") || modelName.toLowerCase().includes("pony") || modelName.toLowerCase().includes("animagine");
+    // hsxl_temporal_layers.safetensors is strictly an SDXL motion module
+    const isMotionSDXL = (motionModule && motionModule.includes("hsxl")) || (motionModule && motionModule.includes("sdxl"));
+    const isModelSDXL = modelName.toLowerCase().includes("xl") || modelName.toLowerCase().includes("pony") || modelName.toLowerCase().includes("animagine");
+    const isSDXL = isModelSDXL || isMotionSDXL;
+
+    let finalModelName = modelName;
+    if (isMotionSDXL && !isModelSDXL) {
+        // If motion module is SDXL but selected model is SD1.5, switch to animagine-xl
+        finalModelName = "animagine-xl-3.1.safetensors";
+    }
 
     let finalPrompt = prompt;
-    let finalMotionModule = motionModule;
+    let finalMotionModule = motionModule || "hsxl_temporal_layers.safetensors";
     let finalDenoise = options.denoisingStrength || 0.75;
     let finalCfg = cfg;
     let finalSteps = steps;
@@ -591,7 +606,7 @@ function buildAnimationWorkflow(options) {
         finalSteps = 28;
 
         if (finalMotionModule.includes("sd15") || finalMotionModule.includes("v15") || finalMotionModule.includes("t2v") || finalMotionModule.includes("1.5")) {
-            finalMotionModule = "mm_sdxl_v10_119.ckpt";
+            finalMotionModule = "hsxl_temporal_layers.safetensors";
         }
 
         const removeTags = ["score_9", "score_8_up", "score_7_up", "score_6_up", "score_5_up", "score_4_up", "masterpiece", "best quality", "super detail", "highres"];
@@ -608,9 +623,9 @@ function buildAnimationWorkflow(options) {
     }
 
     const nodes = {
-        "11": { "class_type": "CheckpointLoaderSimple", "inputs": { "ckpt_name": modelName } },
+        "11": { "class_type": "CheckpointLoaderSimple", "inputs": { "ckpt_name": finalModelName } },
         "4": { "class_type": "EmptyLatentImage", "inputs": { "width": width, "height": height, "batch_size": frameCount } },
-        "6": { "class_type": "ADE_AnimateDiffUniformContextOptions", "inputs": { "context_length": 16, "context_stride": 1, "context_overlap": 4, "context_schedule": "uniform", "closed_loop": false } },
+        "6": { "class_type": "ADE_AnimateDiffUniformContextOptions", "inputs": { "context_length": finalMotionModule.includes("hsxl") ? 8 : 16, "context_stride": 1, "context_overlap": finalMotionModule.includes("hsxl") ? 2 : 4, "context_schedule": "uniform", "closed_loop": false } },
         "7": {
             "class_type": "KSampler",
             "inputs": {
@@ -660,8 +675,8 @@ function buildAnimationWorkflow(options) {
     }
 
     // AnimateDiff Setup
-    // AnimateDiff Setup
-    nodes["5"] = { "class_type": "ADE_AnimateDiffLoaderWithContext", "inputs": { "model": currentModel, "model_name": finalMotionModule, "context_options": ["6", 0], "beta_schedule": "autoselect" } };
+    const betaSchedule = isSDXL ? "linear (AnimateDiff-SDXL)" : "autoselect";
+    nodes["5"] = { "class_type": "ADE_AnimateDiffLoaderWithContext", "inputs": { "model": currentModel, "model_name": finalMotionModule, "context_options": ["6", 0], "beta_schedule": betaSchedule } };
 
     // Quality Booster (FreeU V2)
     nodes["freeu"] = {

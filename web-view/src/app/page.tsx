@@ -749,7 +749,8 @@ export default function Dashboard() {
             modelName: selectedModel,
             width: w,
             height: h,
-            upscale: aiUpscale
+            upscale: aiUpscale,
+            upscaleModel: selectedUpscaleModel
         });
     };
 
