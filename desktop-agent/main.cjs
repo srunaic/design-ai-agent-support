@@ -2378,9 +2378,12 @@ function startComfyUIBackground() {
         logToFile('ComfyUI not running. Starting background instance without console window...');
         // Look for ComfyUI_windows_portable
         const possiblePaths = [
+            path.join(path.dirname(process.execPath), 'ComfyUI_windows_portable'),
             path.join(process.resourcesPath, 'ComfyUI_windows_portable'),
             path.join(__dirname, '..', 'ComfyUI_windows_portable'),
             path.join(process.cwd(), 'ComfyUI_windows_portable'),
+            'C:\\ComfyUI_windows_portable',
+            'D:\\ComfyUI_windows_portable',
             'D:\\Github\\Design_Supporter\\ComfyUI_windows_portable'
         ];
 
