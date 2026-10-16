@@ -187,34 +187,29 @@ function handleLoginSuccess() {
     const localUrl = 'http://localhost:3000/design-ai-agent-support';
     const remoteUrl = 'https://srunaic.github.io/design-ai-agent-support';
 
-    // 로컬 서버 활성화 여부 체크 후 로드
+    // 로컬 서버 활성화 여부 체크 후 로드 (TCP 포트뿐 아니라 실제 HTTP 200/304 응답 확인)
     const checkLocalAndLoad = () => {
         logToFile(`Checking local server at ${localUrl}...`);
-        const client = new net.Socket();
-        client.setTimeout(1000);
-
-        client.on('connect', () => {
-            logToFile('Local dev server detected. Loading locally...');
-            client.destroy();
-            mainWindow.loadURL(localUrl).catch(err => {
-                logToFile(`Fallback to remote due to load error: ${err.message}`);
+        const req = http.get(localUrl, (res) => {
+            if (res.statusCode >= 200 && res.statusCode < 400) {
+                logToFile(`Local dev server detected (HTTP ${res.statusCode}). Loading locally...`);
+                mainWindow.loadURL(localUrl);
+            } else {
+                logToFile(`Local port open but returned HTTP ${res.statusCode}. Loading remote app...`);
                 mainWindow.loadURL(remoteUrl);
-            });
+            }
         });
 
-        client.on('error', () => {
-            logToFile('Local server not found. Loading remote app...');
-            client.destroy();
+        req.on('error', (err) => {
+            logToFile(`Local server not found (${err.message}). Loading remote app...`);
             mainWindow.loadURL(remoteUrl);
         });
 
-        client.on('timeout', () => {
+        req.setTimeout(1500, () => {
+            req.destroy();
             logToFile('Local server check timed out. Loading remote app...');
-            client.destroy();
             mainWindow.loadURL(remoteUrl);
         });
-
-        client.connect(3000, '127.0.0.1');
     };
 
     setTimeout(checkLocalAndLoad, 1000);
