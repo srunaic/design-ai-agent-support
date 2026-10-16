@@ -30,10 +30,10 @@ Design Supporter는 **Photoshop**과 로컬 **ComfyUI**를 직접 통합한 차�
 
 ### 🚀 시작하기
 
-1. **다운로드**: 최신 릴리즈(`v4.6.2`)를 다운로드합니다.
-2. **모델 설치**: `models/` 폴더에 `Custom Anime v4 sharp.safetensors` 등 필요한 모델을 배치합니다. ([MODEL_GUIDE.md](./MODEL_GUIDE.md) 참고)
-3. **ComfyUI 설정**: 이 저장소 루트에 `ComfyUI_windows_portable` 폴더가 위치하도록 압축을 해제합니다.
-4. **실행**: `design_support.bat` 파일을 실행하여 백엔드 서버와 UI를 동시에 켭니다.
+1. **다운로드**: [GitHub Releases 탭](https://github.com/srunaic/design-ai-agent-support/releases)에서 최신 배포 패키지(`v4.7.0`)를 다운로드합니다.
+2. **모델 설치**: [MODEL_GUIDE.md](./MODEL_GUIDE.md) 안내에 따라 필요한 AI 모델 파일을 다운로드하여 배치합니다.
+3. **ComfyUI 설정**: 가이드에 따라 `ComfyUI_windows_portable` 압축을 해제합니다.
+4. **실행**: 패키지에 포함된 실행 스크립트를 통해 앱을 구동합니다.
 
 ---
 
@@ -61,10 +61,10 @@ Design Supporter is a next-generation AI design assistant that integrates direct
 
 ### 🚀 Installation & Setup
 
-1. **Download**: Get the latest version (`v4.6.2`) from the [Releases](https://github.com/srunaic/design-ai-agent-support/releases) tab.
+1. **Download**: Download the latest release from the [GitHub Releases](https://github.com/srunaic/design-ai-agent-support/releases) tab.
 2. **AI Models**: Follow the **[Model Installation Guide (MODEL_GUIDE.md)](./MODEL_GUIDE.md)** for links and placement instructions.
-3. **ComfyUI Engine**: Extract the preconfigured ComfyUI Portable Pack so that the `ComfyUI_windows_portable` folder sits inside this repository's root.
-4. **Execution**: Double-click `design_support.bat` to boot up the Backend Node Server and the UI.
+3. **ComfyUI Engine**: Extract the preconfigured ComfyUI Portable Pack as instructed.
+4. **Execution**: Run the startup script included in the release package.
 
 ---
 
