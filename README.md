@@ -15,7 +15,7 @@ run_nvidia_gpu 를 실행 해줘야지만 compy ui의 여러 모델 llm을 이�
 
 ---
 
-![Uploading image.png…]()
+<img width="1904" height="1039" alt="image" src="https://github.com/user-attachments/assets/ae153122-8337-4e6a-b2ad-2d9097cade8a" />
 
 
 
