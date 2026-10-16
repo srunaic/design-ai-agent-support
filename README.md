@@ -1,3 +1,10 @@
+주의 사항
+
+<h1>**반드시 design support _ bat 를 실행하시고 
+compy ui 기반이기 때문에 compyui portable 설치 후 
+run_nvidia_gpu 를 실행 해줘야지만 compy ui의 여러 모델 llm을 이용 하실 수 있습니다.**</h1>
+
+
 # 🎨 Design Supporter AI (V4.6.2)
 
 > **"Designed to fully support your raw creativity. You focus on the ideas, our AI handles the rendering."**
