@@ -24,6 +24,18 @@ run_nvidia_gpu 를 실행 해줘야지만 compy ui의 여러 모델 llm을 이�
 
 AI 드로잉 이미지 생성 시 
 
+
+
+
+<img width="1610" height="971" alt="image" src="https://github.com/user-attachments/assets/fd3e3ae6-c2de-4df1-a28d-3f8aeed674c2" />
+
+AI 애니메이션 생성 시 ram 메모리 영향을 많이 받습니다 높은 칩일수록 성능이 올라갑니다.
+
+
+<img width="662" height="214" alt="image" src="https://github.com/user-attachments/assets/69fc1d8a-f776-45ae-90df-813d31beb2f3" />
+실시간 자동 번역 시스템 프롬프트 입력시 영어를 몰라도 전혀 문제가 없습니다 한국어 입력 후 gemini 버튼만 누르면 바로 영어로 변환이 됩니다.
+
+
 포토샵 실시간 연동과 가져오기 가능
 
 <a name="한국어"></a>
