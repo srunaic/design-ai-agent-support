@@ -1,11 +1,17 @@
 주의 사항
 
 <h1>
+   
 design supporter ai 사용시
-compy ui 기반이기 때문에 compyui portable 설치 후 
-run_nvidia_gpu 를 실행 해줘야지만 compy ui의 여러 모델 llm을 이용 하실 수 있습니다.
+   
+compy ui 기반이기 때문에 compyui portable 설치 후 만약 모델 에러가 나신다면
+   
+run_nvidia_gpu 를 반드시 실행 해줘야 합니다. compy ui의 여러 모델 llm을 이용 하실 수 있습니다.
 
-compy ui portable (은)는 용량이 상당히 크기 때문에 제가 설치 가이드를 올려 드렸습니다. 아래의 model_guide를 참고하시고 링크 따라 다운로드 해주시면 됩니다.
+compy ui portable (은)는 용량이 상당히 크기 때문에 제가 설치 가이드를 올려 드렸습니다. 
+
+아래의 model_guide를 참고하시고 링크 따라 다운로드 해주시면 됩니다.
+
 </h1>
 
 
