@@ -17,7 +17,13 @@ run_nvidia_gpu 를 실행 해줘야지만 compy ui의 여러 모델 llm을 이�
 
 <img width="1904" height="1039" alt="image" src="https://github.com/user-attachments/assets/ae153122-8337-4e6a-b2ad-2d9097cade8a" />
 
+<img width="881" height="496" alt="image" src="https://github.com/user-attachments/assets/997154bb-abf2-4d04-93b7-aa6a6247ae71" />
 
+<img width="1892" height="1033" alt="image" src="https://github.com/user-attachments/assets/2854b02f-95b0-4de6-90fb-dd9495d5e67e" />
+
+AI 드로잉 이미지 생성 시 
+
+포토샵 실시간 연동과 가져오기 가능
 
 <a name="한국어"></a>
 ## 🇰🇷 한국어 (Korean)
