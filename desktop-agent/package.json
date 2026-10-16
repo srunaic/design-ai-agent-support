@@ -11,9 +11,24 @@
   "build": {
     "appId": "com.supporter.hands",
     "productName": "Design Supporter",
+    "asar": true,
     "win": {
-      "target": "portable"
+      "target": "nsis"
     },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Design Supporter"
+    },
+    "files": [
+      "**/*",
+      "!trainer/**",
+      "!src-tauri/**",
+      "!**/*.log",
+      "!dist/**"
+    ],
     "directories": {
       "output": "dist"
     }

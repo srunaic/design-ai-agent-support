@@ -151,13 +151,9 @@ function createWindow() {
         logToFile(`Successfully loaded: ${mainWindow.webContents.getURL()}`);
     });
 
-    // 자동 로그인 체크
-    if (config.rememberMe) {
-        logToFile('Auto-login enabled. Bypassing login screen.');
-        handleLoginSuccess();
-    } else {
-        loadLoginScreen();
-    }
+    // 바로 서비스 시작 및 웹뷰(https://srunaic.github.io/design-ai-agent-support) 로드
+    logToFile('Starting service directly and loading web view...');
+    handleLoginSuccess();
 
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         logToFile(`Opening external URL: ${url}`);
@@ -2368,7 +2364,83 @@ WScript.Quit 0
     }
 }
 
+let comfyProcess = null;
+
+function startComfyUIBackground() {
+    // Check if ComfyUI is already running
+    const req = http.get('http://127.0.0.1:8188/system_stats', (res) => {
+        if (res.statusCode === 200) {
+            logToFile('ComfyUI is already running.');
+        }
+    });
+
+    req.on('error', () => {
+        logToFile('ComfyUI not running. Starting background instance without console window...');
+        // Look for ComfyUI_windows_portable
+        const possiblePaths = [
+            path.join(process.resourcesPath, 'ComfyUI_windows_portable'),
+            path.join(__dirname, '..', 'ComfyUI_windows_portable'),
+            path.join(process.cwd(), 'ComfyUI_windows_portable'),
+            'D:\\Github\\Design_Supporter\\ComfyUI_windows_portable'
+        ];
+
+        let baseComfyDir = null;
+        for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+                baseComfyDir = p;
+                break;
+            }
+        }
+
+        if (!baseComfyDir) {
+            logToFile('ComfyUI_windows_portable folder not found in search paths.');
+            return;
+        }
+
+        const pythonExe = path.join(baseComfyDir, 'python_embeded', 'python.exe');
+        const mainPy = path.join(baseComfyDir, 'ComfyUI', 'main.py');
+
+        if (fs.existsSync(pythonExe) && fs.existsSync(mainPy)) {
+            try {
+                comfyProcess = spawn(pythonExe, ['-s', mainPy, '--windows-standalone-build'], {
+                    cwd: baseComfyDir,
+                    windowsHide: true,
+                    detached: false,
+                    stdio: 'ignore'
+                });
+
+                logToFile(`ComfyUI started in background (PID: ${comfyProcess.pid})`);
+
+                comfyProcess.on('exit', (code) => {
+                    logToFile(`ComfyUI background process exited with code ${code}`);
+                    comfyProcess = null;
+                });
+            } catch (err) {
+                logToFile(`Failed to spawn ComfyUI: ${err.message}`);
+            }
+        } else {
+            logToFile(`python.exe or main.py missing at: ${baseComfyDir}`);
+        }
+    });
+
+    req.setTimeout(1000, () => req.destroy());
+}
+
+function stopComfyUIBackground() {
+    if (comfyProcess) {
+        logToFile(`Stopping ComfyUI background process (PID: ${comfyProcess.pid})...`);
+        try {
+            const { execSync } = require('child_process');
+            execSync(`taskkill /F /T /PID ${comfyProcess.pid}`);
+        } catch (e) {
+            try { comfyProcess.kill('SIGKILL'); } catch (err) {}
+        }
+        comfyProcess = null;
+    }
+}
+
 app.whenReady().then(() => {
+    startComfyUIBackground();
     createWindow();
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -2376,5 +2448,10 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+    stopComfyUIBackground();
     if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('will-quit', () => {
+    stopComfyUIBackground();
 });
