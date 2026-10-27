@@ -349,6 +349,20 @@ function startBridge() {
 
     wss.on('connection', (ws) => {
         logToFile('New Bridge connection established');
+        // Immediately check and broadcast ComfyUI status to newly connected client
+        comfyUI.checkConnection().then(async (status) => {
+            if (status.connected) {
+                const models = await comfyUI.getModels();
+                const motionModules = await comfyUI.getMotionModules();
+                const upscaleModels = await comfyUI.getUpscaleModels();
+                const llmModels = await comfyUI.getLLMs();
+                ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: true, models, motionModules, upscaleModels, llmModels } }));
+            } else {
+                ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false } }));
+            }
+        }).catch(() => {
+            ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false } }));
+        });
         ws.on('message', (message) => {
             logToFile(`Bridge Message received: ${message}`);
             try {

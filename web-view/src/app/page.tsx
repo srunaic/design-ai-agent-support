@@ -718,11 +718,14 @@ export default function Dashboard() {
         }
     }, [bridge]);
 
-    // Check ComfyUI connection when entering Step 5 or 6
+    // Check ComfyUI connection on mount, step change, and periodically
     useEffect(() => {
-        if ((currentStep === 5 || currentStep === 6) && bridge) {
-            bridge.executeTool('photoshop', 'check_comfyui');
-        }
+        if (!bridge) return;
+        bridge?.executeTool('photoshop', 'check_comfyui');
+        const interval = setInterval(() => {
+            bridge?.executeTool('photoshop', 'check_comfyui');
+        }, 3000);
+        return () => clearInterval(interval);
     }, [currentStep, bridge]);
 
     const handleAiDrawStart = () => {
@@ -1355,9 +1358,30 @@ export default function Dashboard() {
                                             </button>
                                         </div>
 
+                                        {/* ComfyUI Live Status Pill */}
+                                        <div className="flex items-center justify-between px-1 pt-1">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${comfyConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]' : 'bg-amber-500 animate-pulse'}`} />
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-[#4a463d]/60">
+                                                    ComfyUI: {comfyConnected ? 'ONLINE' : 'CONNECTING...'}
+                                                </span>
+                                            </div>
+                                            <button
+                                                onClick={() => bridge?.executeTool('photoshop', 'check_comfyui')}
+                                                className="text-[8px] font-black uppercase text-[#546147] hover:underline"
+                                            >
+                                                새로고침
+                                            </button>
+                                        </div>
+
                                         <button
-                                            disabled={!comfyConnected || (uploadedFiles.length === 0 && !uiPrompt)}
+                                            disabled={uploadedFiles.length === 0 && !uiPrompt}
                                             onClick={() => {
+                                                if (!comfyConnected) {
+                                                    setAiStatusMsg("⚠️ ComfyUI 엔진에 연결 중입니다. 잠시 후 다시 시도해주세요.");
+                                                    bridge?.executeTool('photoshop', 'check_comfyui');
+                                                    return;
+                                                }
                                                 setAiStatusMsg(`🎨 전문 UI/UX 시안 생성 중 (${uiDevice === 'mobile' ? 'Mobile' : 'Web'})...`);
                                                 const finalW = uiDevice === 'mobile' ? 576 : 1024;
                                                 const finalH = uiDevice === 'mobile' ? 1024 : 768;
@@ -1377,7 +1401,7 @@ export default function Dashboard() {
                                                     upscaleModel: '4x-UltraSharp.pth'
                                                 });
                                             }}
-                                            className={`w-full py-4 md:py-6 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-xl shadow-[#d4cfc0]/40 active:scale-95 ${(!comfyConnected || (uploadedFiles.length === 0 && !uiPrompt)) ? 'bg-[#fdead3]/10 text-[#4a463d]/20 cursor-not-allowed' : 'bg-gradient-to-r from-[#d4cfc0] to-[#546147] text-[#4a463d] hover:scale-[1.02]'}`}
+                                            className={`w-full py-4 md:py-6 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-xl shadow-[#d4cfc0]/40 active:scale-95 ${(uploadedFiles.length === 0 && !uiPrompt) ? 'bg-[#fdead3]/10 text-[#4a463d]/20 cursor-not-allowed' : (comfyConnected ? 'bg-gradient-to-r from-[#d4cfc0] to-[#546147] text-[#4a463d] hover:scale-[1.02]' : 'bg-[#546147]/80 text-white hover:scale-[1.02]')}`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <Zap size={16} className="fill-current" />
