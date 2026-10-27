@@ -368,10 +368,12 @@ export default function Dashboard() {
     const [comfyModels, setComfyModels] = useState<string[]>([]);
     const [aiResolution, setAiResolution] = useState('512x512');
     const [aiAspectRatio, setAiAspectRatio] = useState('1:1');
-    const [uiPrompt, setUiPrompt] = useState('modern game workspace, futuristic aesthetic, sleek layout, glassmorphism, high quality');
-    const [uiNegativePrompt, setUiNegativePrompt] = useState('low quality, messy, text, watermark, hand-drawn');
+    const [uiPrompt, setUiPrompt] = useState('fintech bento grid analytics dashboard, revenue metrics, crypto card, transaction table, sleek dark mode');
+    const [uiNegativePrompt, setUiNegativePrompt] = useState('character, anime, illustration, portrait, photo of person, 3d human, face, messy text, blurry, distorted icons');
     const [uiUpscale, setUiUpscale] = useState(false);
     const [selectedUiModel, setSelectedUiModel] = useState('UiUX-SDXL.safetensors');
+    const [uiPreset, setUiPreset] = useState<'bento' | 'saas' | 'mobile' | 'admin' | 'ecommerce'>('bento');
+    const [uiDevice, setUiDevice] = useState<'web' | 'mobile'>('web');
 
     // Video Editing States (V11.0)
     const [activeVideoIndex, setActiveVideoIndex] = useState(0);
@@ -1259,6 +1261,55 @@ export default function Dashboard() {
                                             />
                                         </div>
 
+                                        {/* Professional UI Design Presets */}
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-[#8c8270] px-1">Professional Style Presets</label>
+                                            <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#8c8270]/10 rounded-2xl">
+                                                {[
+                                                    { id: 'bento', label: '📊 Bento Grid', prompt: 'bento grid layout, modern fintech analytics dashboard, revenue cards, interactive charts, clean typography, dark theme' },
+                                                    { id: 'saas', label: '🚀 SaaS Web', prompt: 'modern SaaS landing page, hero section, clean navbar, high converting CTA, glassmorphism cards, light aesthetic' },
+                                                    { id: 'mobile', label: '📱 Mobile App', prompt: 'mobile app iOS UI design, modern ecommerce store, bottom navigation bar, product feed cards, Apple HIG aesthetics' },
+                                                    { id: 'admin', label: '📋 Admin ERP', prompt: 'enterprise management admin portal, data tables, filter bars, sidebar navigation, clean minimal UI kit' },
+                                                    { id: 'ecommerce', label: '🛍️ Storefront', prompt: 'luxury fashion brand web design, product showcase grid, high-end editorial UI, minimal layout' }
+                                                ].map((p) => (
+                                                    <button
+                                                        key={p.id}
+                                                        onClick={() => {
+                                                            setUiPreset(p.id as any);
+                                                            setUiPrompt(p.prompt);
+                                                            if (p.id === 'mobile') setUiDevice('mobile');
+                                                            else setUiDevice('web');
+                                                        }}
+                                                        className={`py-2 px-1 text-[8px] font-black uppercase rounded-xl transition-all ${uiPreset === p.id ? 'bg-[#546147] text-white shadow-md' : 'text-[#4a463d]/60 hover:bg-white/20'}`}
+                                                    >
+                                                        {p.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Target Resolution / Aspect Ratio */}
+                                        <div className="flex items-center justify-between px-1 pt-1">
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-[#8c8270]">Canvas Ratio</span>
+                                                <span className="text-[7px] text-[#8c8270] uppercase">Target Platform</span>
+                                            </div>
+                                            <div className="flex gap-1.5 p-1 bg-[#8c8270]/10 rounded-xl">
+                                                <button
+                                                    onClick={() => setUiDevice('web')}
+                                                    className={`px-3 py-1 text-[8px] font-black uppercase rounded-lg transition-all ${uiDevice === 'web' ? 'bg-[#546147] text-white' : 'text-[#4a463d]/40'}`}
+                                                >
+                                                    Web (1024x768)
+                                                </button>
+                                                <button
+                                                    onClick={() => setUiDevice('mobile')}
+                                                    className={`px-3 py-1 text-[8px] font-black uppercase rounded-lg transition-all ${uiDevice === 'mobile' ? 'bg-[#546147] text-white' : 'text-[#4a463d]/40'}`}
+                                                >
+                                                    Mobile (576x1024)
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <div className="space-y-1.5">
                                             <label className="text-[9px] font-black uppercase tracking-widest text-[#8c8270] px-1">Exclusions (Negative)</label>
                                             <input
@@ -1307,17 +1358,22 @@ export default function Dashboard() {
                                         <button
                                             disabled={!comfyConnected || (uploadedFiles.length === 0 && !uiPrompt)}
                                             onClick={() => {
-                                                setAiStatusMsg(`🎨 AI UI/UX 시안 생성 중...`);
+                                                setAiStatusMsg(`🎨 전문 UI/UX 시안 생성 중 (${uiDevice === 'mobile' ? 'Mobile' : 'Web'})...`);
+                                                const finalW = uiDevice === 'mobile' ? 576 : 1024;
+                                                const finalH = uiDevice === 'mobile' ? 1024 : 768;
+                                                const enhancedUiPrompt = `professional modern digital UI design, high fidelity Figma UI kit, clean web app interface, ${uiPrompt}, crisp vector typography, pristine components, elegant color palette, high resolution, 8k`;
+                                                const enhancedNegative = `${uiNegativePrompt}, character, human portrait, anime girl, 3d person, realistic face, sketch, drawing, watermark, messy low quality, distorted text, blurred icons`;
                                                 bridge?.executeTool('photoshop', 'ai_draw_once', {
                                                     target: 'ui_design',
                                                     mode: 't2i',
-                                                    prompt: `UI design, app interface, ${uiPrompt}`,
-                                                    negativePrompt: `${uiNegativePrompt}, low quality, messy`,
+                                                    prompt: enhancedUiPrompt,
+                                                    negativePrompt: enhancedNegative,
                                                     denoisingStrength: 1.0,
-                                                    width: 1024,
-                                                    height: 768,
+                                                    width: finalW,
+                                                    height: finalH,
                                                     upscale: uiUpscale,
                                                     model: selectedUiModel,
+                                                    modelName: selectedUiModel,
                                                     upscaleModel: '4x-UltraSharp.pth'
                                                 });
                                             }}

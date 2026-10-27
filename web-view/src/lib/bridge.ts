@@ -3,6 +3,7 @@ export type ToolStatus = {
     status: 'IDLE' | 'RUNNING' | 'SAVING' | 'COMPLETED' | 'ERROR';
     message: string;
     progress?: number;
+    target?: string;
 };
 
 class DesignBridge {

@@ -294,13 +294,22 @@ async function getLLMs() {
 /**
  * Helper to check for specific helper LoRAs (Hands/Feet)
  */
-function getHelperLoras() {
+function getHelperLoras(isUI = false, isXL = false) {
     const loras = [];
     try {
         const comfyDir = path.join(__dirname, '..', 'ComfyUI_windows_portable', 'ComfyUI');
         const loraDir = path.join(comfyDir, 'models', 'loras');
         if (fs.existsSync(loraDir)) {
             const files = fs.readdirSync(loraDir);
+            if (isUI) {
+                // UI/UX Mode: Exclusively apply UI LoRA, exclude hand/feet character loras
+                if (isXL && files.includes('UiUX-SDXL.safetensors')) {
+                    loras.push({ name: 'UiUX-SDXL.safetensors', strength: 0.95 });
+                } else if (files.includes('UI-UX-05.safetensors')) {
+                    loras.push({ name: 'UI-UX-05.safetensors', strength: 0.95 });
+                }
+                return loras;
+            }
             // Specific hand/foot improvements
             if (files.includes('goodhands_Beta_Gtonero.safetensors')) loras.push({ name: 'goodhands_Beta_Gtonero.safetensors', strength: 0.7 });
             if (files.includes('PerfectFeet.safetensors')) loras.push({ name: 'PerfectFeet.safetensors', strength: 0.7 });
@@ -351,8 +360,11 @@ function buildImg2ImgWorkflow(options) {
         seed = -1,
         upscale = false,
         modelName = "Custom Anime v4 sharp.safetensors",
-        upscaleModel = "4x-UltraSharp.pth"
+        upscaleModel = "4x-UltraSharp.pth",
+        isUI = false
     } = options;
+
+    const isXL = modelName.toLowerCase().includes("xl") || modelName.toLowerCase().includes("pony") || modelName.toLowerCase().includes("animagine");
 
     const actualSeed = seed === -1 ? Math.floor(Math.random() * 1e15) : seed;
 
@@ -372,8 +384,8 @@ function buildImg2ImgWorkflow(options) {
         "10": { "class_type": "SaveImage", "inputs": { "images": ["9", 0], "filename_prefix": "ai_draw_result" } }
     };
 
-    // INJECT HELPER LORAS (Hands/Feet)
-    const helperLoras = getHelperLoras();
+    // INJECT HELPER LORAS (Hands/Feet or UI/UX LoRA)
+    const helperLoras = getHelperLoras(isUI, isXL);
     let currentModel = ["1", 0];
     let currentClip = ["1", 1];
 

@@ -1170,24 +1170,37 @@ WScript.Quit 0
                 if (data.prompt) aiDrawSession.prompt = data.prompt;
                 if (data.negativePrompt) aiDrawSession.negativePrompt = data.negativePrompt;
                 if (data.denoisingStrength !== undefined) aiDrawSession.denoisingStrength = parseFloat(data.denoisingStrength);
-                if (data.modelName) aiDrawSession.modelName = data.modelName;
+                if (data.modelName || data.model) aiDrawSession.modelName = data.modelName || data.model;
                 if (data.width) aiDrawSession.width = parseInt(data.width);
                 if (data.height) aiDrawSession.height = parseInt(data.height);
                 if (data.upscale !== undefined) aiDrawSession.upscale = data.upscale;
                 if (data.upscaleModel) aiDrawSession.upscaleModel = data.upscaleModel;
+
+                // UI/UX Mode Specialized Handling
+                const isUI = target === 'ui_design';
+                let effectiveModel = aiDrawSession.modelName;
+                if (isUI) {
+                    // For UI design, if user chose UiUX-SDXL, ensure SDXL checkpoint is loaded
+                    if (effectiveModel.includes('UiUX-SDXL') || effectiveModel.includes('SDXL')) {
+                        effectiveModel = 'animagine-xl-3.1.safetensors';
+                    } else if (effectiveModel.includes('UI-UX-05') || effectiveModel.includes('Custom Anime')) {
+                        effectiveModel = 'Custom Anime v4 sharp.safetensors';
+                    }
+                }
 
                 const resultPath = path.join(ASSETS_PATH, 'ai_draw_result.png');
                 const result = await comfyUI.generateImg2Img(snapshotPath, {
                     prompt: aiDrawSession.prompt,
                     negativePrompt: aiDrawSession.negativePrompt,
                     denoisingStrength: aiDrawSession.denoisingStrength,
-                    steps: aiDrawSession.steps,
-                    cfg: aiDrawSession.cfg,
-                    modelName: aiDrawSession.modelName,
+                    steps: isUI ? 26 : aiDrawSession.steps,
+                    cfg: isUI ? 8.0 : aiDrawSession.cfg,
+                    modelName: effectiveModel,
                     width: aiDrawSession.width,
                     height: aiDrawSession.height,
                     upscale: aiDrawSession.upscale,
-                    upscaleModel: aiDrawSession.upscaleModel
+                    upscaleModel: aiDrawSession.upscaleModel,
+                    isUI: isUI
                 }, resultPath, (progress) => {
                     onStatus(initialMsg, progress);
                 });
