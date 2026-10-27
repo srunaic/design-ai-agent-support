@@ -14,7 +14,6 @@ desktop-agent/
 figma-plugin/
 models/
 web-view/
-.github/
 tmp/
 .env*
 *.py
