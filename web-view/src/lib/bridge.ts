@@ -67,8 +67,7 @@ class DesignBridge {
             this.messageQueue.push(msg);
         } else {
             const status = this.ws ? this.ws.readyState : 'CLOSED';
-            console.error(`Bridge not connected. Status: ${status}`);
-            alert('에이전트와 연결이 끊겨 있습니다. 잠시 후 다시 시도하거나 프로그램을 재시작해 주세요.');
+            console.warn(`Bridge not connected. Status: ${status}`);
         }
     }
 

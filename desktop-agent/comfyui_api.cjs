@@ -310,6 +310,10 @@ function getHelperLoras(isUI = false, isXL = false) {
                 }
                 return loras;
             }
+            // CRITICAL: For SDXL models, DO NOT load SD 1.5 helper LoRAs (goodhands/PerfectFeet) to prevent tensor shape mismatch crash!
+            if (isXL) {
+                return loras;
+            }
             // Specific hand/foot improvements
             if (files.includes('goodhands_Beta_Gtonero.safetensors')) loras.push({ name: 'goodhands_Beta_Gtonero.safetensors', strength: 0.7 });
             if (files.includes('PerfectFeet.safetensors')) loras.push({ name: 'PerfectFeet.safetensors', strength: 0.7 });
@@ -325,7 +329,8 @@ function getHelperLoras(isUI = false, isXL = false) {
 /**
  * Helper to check for specific helper Embeddings (Negative)
  */
-function getHelperEmbeddings() {
+function getHelperEmbeddings(isXL = false) {
+    if (isXL) return []; // SDXL models cannot use SD1.5 text inversion embeddings
     const embeddings = [];
     try {
         const comfyDir = path.join(__dirname, '..', 'ComfyUI_windows_portable', 'ComfyUI');
@@ -369,7 +374,7 @@ function buildImg2ImgWorkflow(options) {
     const actualSeed = seed === -1 ? Math.floor(Math.random() * 1e15) : seed;
 
     // INJECT HELPER EMBEDDINGS (Negative)
-    const helperEmbeds = getHelperEmbeddings();
+    const helperEmbeds = getHelperEmbeddings(isXL);
     let finalNegativePrompt = negativePrompt;
     if (helperEmbeds.length > 0) {
         finalNegativePrompt += ", " + helperEmbeds.join(", ");
@@ -628,7 +633,7 @@ function buildAnimationWorkflow(options) {
     }
 
     // INJECT HELPER EMBEDDINGS (Negative)
-    const helperEmbeds = getHelperEmbeddings();
+    const helperEmbeds = getHelperEmbeddings(isSDXL);
     let finalNegativePrompt = negativePrompt;
     if (helperEmbeds.length > 0) {
         finalNegativePrompt += ", " + helperEmbeds.join(", ");
@@ -660,7 +665,7 @@ function buildAnimationWorkflow(options) {
     }
 
     // INJECT HELPER LORAS (Hands/Feet)
-    const helperLoras = getHelperLoras();
+    const helperLoras = getHelperLoras(false, isSDXL);
     if (helperLoras.length > 0) {
         helperLoras.forEach((lora, index) => {
             const nodeId = `lora_helper_${index}`;
