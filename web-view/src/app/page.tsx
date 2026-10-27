@@ -297,7 +297,7 @@ export default function Dashboard() {
     const [previewSlide, setPreviewSlide] = useState(0);
     const [isFocusMode, setIsFocusMode] = useState(false);
     const [aniMotionModules, setAniMotionModules] = useState<string[]>([]);
-    const [selectedMotionModule, setSelectedMotionModule] = useState("");
+    const [selectedMotionModule, setSelectedMotionModule] = useState("hsxl_temporal_layers.safetensors");
     const [aniUpscaleModels, setAniUpscaleModels] = useState<string[]>([]);
     const [aniUpscale, setAniUpscale] = useState(false);
     const [aniSmooth, setAniSmooth] = useState(false);
@@ -346,7 +346,7 @@ export default function Dashboard() {
     const [aiAutoMode, setAiAutoMode] = useState(false); // Manual by default as requested
     const [aiGenerating, setAiGenerating] = useState(false);
     const [aiStatusMsg, setAiStatusMsg] = useState("AI 드로잉 준비됨");
-    const [selectedModel, setSelectedModel] = useState('animagineXLV31_v31.safetensors'); // Switched to 2D standard
+    const [selectedModel, setSelectedModel] = useState('animagine-xl-3.1.safetensors'); // Switched to 2D standard
     const [selectedUpscaleModel, setSelectedUpscaleModel] = useState('4x-UltraSharp.pth');
     const [aiUpscale, setAiUpscale] = useState(false);
     const [aiDrawMode, setAiDrawMode] = useState<'t2i' | 'i2i' | 'ps_sync'>('ps_sync');
@@ -864,10 +864,14 @@ export default function Dashboard() {
         if (animationStyle === 'slowmo') stylePrompt = ", slow motion, graceful movement, ethereal, high quality";
         if (animationStyle === 'handdrawn') stylePrompt = ", hand-drawn style, sketch-like animation, artistic, masterpiece";
 
+        const effectiveAniModel = (selectedMotionModule && selectedMotionModule.includes('hsxl')) 
+            ? 'animagine-xl-3.1.safetensors' 
+            : (selectedModel || 'animagine-xl-3.1.safetensors');
+
         bridge.executeTool('photoshop', 'ai_animate', {
             prompt: aniPrompt + stylePrompt,
             negativePrompt: aniNegativePrompt,
-            modelName: selectedModel,
+            modelName: effectiveAniModel,
             motionModule: selectedMotionModule,
             upscale: aniUpscale,
             upscaleModel: selectedUpscaleModel,
@@ -1396,8 +1400,9 @@ export default function Dashboard() {
                                                     width: finalW,
                                                     height: finalH,
                                                     upscale: uiUpscale,
-                                                    model: selectedUiModel,
-                                                    modelName: selectedUiModel,
+                                                    model: 'animagine-xl-3.1.safetensors',
+                                                    modelName: 'animagine-xl-3.1.safetensors',
+                                                    loraName: selectedUiModel,
                                                     upscaleModel: '4x-UltraSharp.pth'
                                                 });
                                             }}
