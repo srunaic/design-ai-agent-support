@@ -311,42 +311,70 @@ ipcMain.on('open-log-folder', () => {
     }
 });
 
+function stopServers() {
+    if (assetServer) {
+        try {
+            assetServer.close();
+            logToFile('Asset HTTP Server stopped');
+        } catch (e) {}
+        assetServer = null;
+    }
+    if (wss) {
+        try {
+            wss.close();
+            logToFile('Bridge Server stopped');
+        } catch (e) {}
+        wss = null;
+    }
+}
+
 function startAssetServer() {
     if (assetServer) return;
     logToFile('Starting Asset HTTP Server on port 8081...');
-    assetServer = http.createServer((req, res) => {
-        // CORS 헤더 추가
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    try {
+        assetServer = http.createServer((req, res) => {
+            // CORS 헤더 추가
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
-        const url = new URL(req.url, `http://${req.headers.host}`);
-        const pathname = decodeURIComponent(url.pathname);
-        const fileName = pathname.replace(/^\/assets\//, '');
-        const targetPath = path.join(ASSETS_PATH, fileName);
+            const url = new URL(req.url, `http://${req.headers.host}`);
+            const pathname = decodeURIComponent(url.pathname);
+            const fileName = pathname.replace(/^\/assets\//, '');
+            const targetPath = path.join(ASSETS_PATH, fileName);
 
-        logToFile(`Asset Request: ${pathname} -> target: ${targetPath}`);
+            logToFile(`Asset Request: ${pathname} -> target: ${targetPath}`);
 
-        if (fs.existsSync(targetPath) && fs.lstatSync(targetPath).isFile()) {
-            const ext = path.extname(targetPath).toLowerCase();
-            const contentType = {
-                '.png': 'image/png',
-                '.jpg': 'image/jpeg',
-                '.jpeg': 'image/jpeg',
-                '.mp4': 'video/mp4',
-                '.gif': 'image/gif'
-            }[ext] || 'application/octet-stream';
+            if (fs.existsSync(targetPath) && fs.lstatSync(targetPath).isFile()) {
+                const ext = path.extname(targetPath).toLowerCase();
+                const contentType = {
+                    '.png': 'image/png',
+                    '.jpg': 'image/jpeg',
+                    '.jpeg': 'image/jpeg',
+                    '.mp4': 'video/mp4',
+                    '.gif': 'image/gif'
+                }[ext] || 'application/octet-stream';
 
-            res.writeHead(200, { 'Content-Type': contentType });
-            fs.createReadStream(targetPath).pipe(res);
-        } else {
-            res.writeHead(404);
-            res.end('Not Found');
-        }
-    });
+                res.writeHead(200, { 'Content-Type': contentType });
+                fs.createReadStream(targetPath).pipe(res);
+            } else {
+                res.writeHead(404);
+                res.end('Not Found');
+            }
+        });
 
-    assetServer.listen(8081, () => {
-        logToFile('Asset HTTP Server running on port 8081');
-    });
+        assetServer.on('error', (err) => {
+            logToFile(`Asset HTTP Server error: ${err.message}`);
+            if (err.code === 'EADDRINUSE') {
+                logToFile('Asset HTTP Server port 8081 already in use. Reusing existing instance.');
+            }
+        });
+
+        assetServer.listen(8081, () => {
+            logToFile('Asset HTTP Server running on port 8081');
+        });
+    } catch (e) {
+        logToFile(`Failed to start Asset HTTP Server: ${e.message}`);
+    }
 }
 
 function startBridge() {
@@ -356,25 +384,38 @@ function startBridge() {
     }
     logToFile('Starting Bridge Server on port 8080...');
     startAssetServer();
-    wss = new WebSocketServer({ port: 8080 });
-    console.log('Bridge Server started on port 8080');
-
-    wss.on('connection', (ws) => {
-        logToFile('New Bridge connection established');
-        // Immediately check and broadcast ComfyUI status to newly connected client
-        comfyUI.checkConnection().then(async (status) => {
-            if (status.connected) {
-                const models = await comfyUI.getModels();
-                const motionModules = await comfyUI.getMotionModules();
-                const upscaleModels = await comfyUI.getUpscaleModels();
-                const llmModels = await comfyUI.getLLMs();
-                ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: true, models, motionModules, upscaleModels, llmModels } }));
-            } else {
-                ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false } }));
+    try {
+        wss = new WebSocketServer({ port: 8080 });
+        wss.on('error', (err) => {
+            logToFile(`Bridge Server error: ${err.message}`);
+            if (err.code === 'EADDRINUSE') {
+                logToFile('Bridge Server port 8080 already in use.');
             }
-        }).catch(() => {
-            ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false } }));
         });
+        console.log('Bridge Server started on port 8080');
+
+        wss.on('connection', (ws) => {
+            logToFile('New Bridge connection established');
+            // Immediately check and broadcast ComfyUI status to newly connected client
+            comfyUI.checkConnection().then(async (status) => {
+                if (status.connected) {
+                    const rawModels = await comfyUI.getModels();
+                    const rawMotion = await comfyUI.getMotionModules();
+                    const rawUpscale = await comfyUI.getUpscaleModels();
+                    const rawLLM = await comfyUI.getLLMs();
+
+                    const models = Array.isArray(rawModels) ? rawModels : [];
+                    const motionModules = Array.isArray(rawMotion) ? rawMotion : [];
+                    const upscaleModels = Array.isArray(rawUpscale) ? rawUpscale : [];
+                    const llmModels = Array.isArray(rawLLM) ? rawLLM : [];
+
+                    ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: true, models, motionModules, upscaleModels, llmModels } }));
+                } else {
+                    ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false, models: [], motionModules: [], upscaleModels: [], llmModels: [] } }));
+                }
+            }).catch(() => {
+                ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false, models: [], motionModules: [], upscaleModels: [], llmModels: [] } }));
+            });
         ws.on('message', (message) => {
             logToFile(`Bridge Message received: ${message}`);
             try {
@@ -2488,20 +2529,37 @@ function stopComfyUIBackground() {
     }
 }
 
-app.whenReady().then(() => {
-    try { comfyUI.cleanAllComfyGarbage(); } catch (e) {}
-    startComfyUIBackground();
-    createWindow();
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    logToFile('Another instance is already running. Quitting duplicate instance cleanly.');
+    app.quit();
+} else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        logToFile('Second instance launch detected. Focusing existing window.');
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
     });
-});
 
-app.on('window-all-closed', () => {
-    stopComfyUIBackground();
-    if (process.platform !== 'darwin') app.quit();
-});
+    app.whenReady().then(() => {
+        try { comfyUI.cleanAllComfyGarbage(); } catch (e) {}
+        startComfyUIBackground();
+        createWindow();
+        app.on('activate', () => {
+            if (BrowserWindow.getAllWindows().length === 0) createWindow();
+        });
+    });
 
-app.on('will-quit', () => {
-    stopComfyUIBackground();
-});
+    app.on('window-all-closed', () => {
+        stopServers();
+        stopComfyUIBackground();
+        if (process.platform !== 'darwin') app.quit();
+    });
+
+    app.on('will-quit', () => {
+        stopServers();
+        stopComfyUIBackground();
+    });
+}
