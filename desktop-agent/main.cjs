@@ -127,6 +127,7 @@ function createWindow() {
     logToFile('Creating main window...');
     loadConfig();
     mainWindow = new BrowserWindow({
+        icon: path.join(__dirname, 'assets', 'icon.png'),
         width: 1600,
         height: 1000,
         minWidth: 1280,
@@ -2470,6 +2471,7 @@ function stopComfyUIBackground() {
 }
 
 app.whenReady().then(() => {
+    try { comfyUI.cleanAllComfyGarbage(); } catch (e) {}
     startComfyUIBackground();
     createWindow();
     app.on('activate', () => {

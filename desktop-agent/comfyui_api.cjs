@@ -14,6 +14,89 @@ const COMFYUI_PORT = 8188;
 const WebSocket = require('ws'); // Added for progress monitoring
 
 /**
+ * Resolves the ComfyUI installation directory
+ */
+function getComfyUIDir() {
+    const candidates = [
+        path.join(path.dirname(process.execPath), 'ComfyUI_windows_portable', 'ComfyUI'),
+        path.join(process.resourcesPath || '', 'ComfyUI_windows_portable', 'ComfyUI'),
+        path.join(__dirname, '..', 'ComfyUI_windows_portable', 'ComfyUI'),
+        path.join(process.cwd(), 'ComfyUI_windows_portable', 'ComfyUI'),
+        'C:\\ComfyUI_windows_portable\\ComfyUI',
+        'D:\\ComfyUI_windows_portable\\ComfyUI',
+        'D:\\Github\\Design_Supporter\\ComfyUI_windows_portable\\ComfyUI'
+    ];
+    for (const c of candidates) {
+        if (c && fs.existsSync(c)) return c;
+    }
+    return null;
+}
+
+/**
+ * Automatically clean up temporary input and output files from ComfyUI
+ * ensuring only the final selected asset in Design Supporter is retained.
+ */
+function cleanupComfyFiles(outputFilename, inputFilename) {
+    try {
+        const comfyDir = getComfyUIDir();
+        if (!comfyDir) return;
+        if (outputFilename) {
+            const outPath = path.join(comfyDir, 'output', outputFilename);
+            if (fs.existsSync(outPath)) {
+                fs.unlinkSync(outPath);
+                console.log(`[Storage] Auto-cleaned temporary ComfyUI output: ${outputFilename}`);
+            }
+        }
+        if (inputFilename) {
+            const inPath = path.join(comfyDir, 'input', inputFilename);
+            if (fs.existsSync(inPath)) {
+                fs.unlinkSync(inPath);
+                console.log(`[Storage] Auto-cleaned temporary ComfyUI input: ${inputFilename}`);
+            }
+        }
+    } catch (err) {
+        console.warn(`[Storage] Cleanup warning: ${err.message}`);
+    }
+}
+
+/**
+ * Removes all legacy leftover files from ComfyUI temp, input, and output directories
+ */
+function cleanAllComfyGarbage() {
+    try {
+        const comfyDir = getComfyUIDir();
+        if (!comfyDir) return { success: false, message: 'ComfyUI directory not found' };
+        let removedCount = 0;
+        let freedBytes = 0;
+        const targetDirs = [
+            path.join(comfyDir, 'temp'),
+            path.join(comfyDir, 'input'),
+            path.join(comfyDir, 'output')
+        ];
+        for (const dir of targetDirs) {
+            if (fs.existsSync(dir)) {
+                const files = fs.readdirSync(dir);
+                for (const f of files) {
+                    const filePath = path.join(dir, f);
+                    try {
+                        const st = fs.statSync(filePath);
+                        if (st.isFile()) {
+                            freedBytes += st.size;
+                            fs.unlinkSync(filePath);
+                            removedCount++;
+                        }
+                    } catch (e) {}
+                }
+            }
+        }
+        return { success: true, removedCount, freedMB: (freedBytes / (1024 * 1024)).toFixed(2) };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+}
+
+
+/**
  * Make an HTTP request to ComfyUI
  */
 function comfyRequest(method, endpoint, body = null) {
@@ -505,7 +588,7 @@ async function queueImg2Img(imagePath, options = {}) {
     }
     const workflow = buildImg2ImgWorkflow({ ...options, inputImageName: inputImageName });
     const res = await comfyRequest('POST', '/prompt', { prompt: workflow });
-    if (res.data?.prompt_id) return { success: true, promptId: res.data.prompt_id };
+    if (res.data?.prompt_id) return { success: true, promptId: res.data.prompt_id, inputImageName: inputImageName };
     return { success: false, error: res.data?.error || 'Unknown error', nodeErrors: res.data?.node_errors };
 }
 
@@ -566,6 +649,7 @@ async function generateImg2Img(imagePath, options = {}, outputPath = null, onPro
 
     if (!result.success) return result;
     if (outputPath && result.imageBuffer) fs.writeFileSync(outputPath, result.imageBuffer);
+    cleanupComfyFiles(result.filename, queueResult.inputImageName);
     return { success: true, imageBuffer: result.imageBuffer, base64: result.imageBuffer.toString('base64'), filename: result.filename };
 }
 
@@ -932,6 +1016,7 @@ async function generateAnimation(options = {}, outputPath = null, onProgress = n
 
     if (!result.success) return result;
     if (outputPath && result.videoBuffer) fs.writeFileSync(outputPath, result.videoBuffer);
+    cleanupComfyFiles(result.filename);
 
     // Extract last frame for iterative synthesis if needed
     let lastFrameBase64 = null;
@@ -1038,6 +1123,9 @@ async function analyzeImageToPrompt(imagePath) {
 }
 
 module.exports = {
+    getComfyUIDir,
+    cleanupComfyFiles,
+    cleanAllComfyGarbage,
     checkConnection,
     getModels,
     getUpscaleModels,
