@@ -995,18 +995,25 @@ WScript.Quit 0
             try {
                 const status = await comfyUI.checkConnection();
                 if (status.connected) {
-                    const models = await comfyUI.getModels();
-                    const motionModules = await comfyUI.getMotionModules();
-                    const upscaleModels = await comfyUI.getUpscaleModels();
-                    const llmModels = await comfyUI.getLLMs();
+                    const rawModels = await comfyUI.getModels();
+                    const rawMotion = await comfyUI.getMotionModules();
+                    const rawUpscale = await comfyUI.getUpscaleModels();
+                    const rawLLM = await comfyUI.getLLMs();
+
+                    const models = Array.isArray(rawModels) ? rawModels : [];
+                    const motionModules = Array.isArray(rawMotion) ? rawMotion : [];
+                    const upscaleModels = Array.isArray(rawUpscale) ? rawUpscale : [];
+                    const llmModels = Array.isArray(rawLLM) ? rawLLM : [];
+
                     ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'COMPLETED', message: `ComfyUI 연결 성공! 모델: ${models.length}, 모션: ${motionModules.length}, LLM: ${llmModels.length}` } }));
                     ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: true, models, motionModules, upscaleModels, llmModels } }));
                 } else {
-                    ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'ComfyUI에 연결할 수 없습니다. ComfyUI를 먼저 실행해주세요. (run_nvidia_gpu.bat)' } }));
-                    ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false } }));
+                    ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: 'ComfyUI에 연결할 수 없습니다. ComfyUI를 먼저 실행해주세요.' } }));
+                    ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false, models: [], motionModules: [], upscaleModels: [], llmModels: [] } }));
                 }
             } catch (e) {
                 ws.send(JSON.stringify({ type: 'TOOL_STATUS', payload: { tool, status: 'ERROR', message: `ComfyUI 연결 오류: ${e.message}` } }));
+                ws.send(JSON.stringify({ type: 'COMFYUI_STATUS', payload: { connected: false, models: [], motionModules: [], upscaleModels: [], llmModels: [] } }));
             }
 
         } else if (action === 'ai_draw_settings') {

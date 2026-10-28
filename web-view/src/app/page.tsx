@@ -619,9 +619,9 @@ export default function Dashboard() {
                         setAiStatusMsg("✨ Magic Tags Applied!");
                     }
                 } else if (data.type === 'COMFYUI_STATUS') {
-                    setComfyConnected(data.payload.connected);
-                    if (data.payload.models) {
-                        const newModels = data.payload.models;
+                    setComfyConnected(Boolean(data.payload?.connected));
+                    if (data.payload?.models) {
+                        const newModels = Array.isArray(data.payload.models) ? data.payload.models : [];
                         setComfyModels(newModels);
 
                         // Validation: If selected model is missing from the updated list, switch to the first valid one
@@ -632,26 +632,29 @@ export default function Dashboard() {
                             }
                         }
                     }
-                    if (data.payload.motionModules) {
-                        setAniMotionModules(data.payload.motionModules);
-                        if (!selectedMotionModule && data.payload.motionModules.length > 0) {
-                            setSelectedMotionModule(data.payload.motionModules[0]);
+                    if (data.payload?.motionModules) {
+                        const newModules = Array.isArray(data.payload.motionModules) ? data.payload.motionModules : [];
+                        setAniMotionModules(newModules);
+                        if (!selectedMotionModule && newModules.length > 0) {
+                            setSelectedMotionModule(newModules[0]);
                         }
                     }
-                    if (data.payload.upscaleModels) {
-                        setAniUpscaleModels(data.payload.upscaleModels);
-                        if (!selectedUpscaleModel && data.payload.upscaleModels.length > 0) {
-                            setSelectedUpscaleModel(data.payload.upscaleModels[0]);
+                    if (data.payload?.upscaleModels) {
+                        const newUpscale = Array.isArray(data.payload.upscaleModels) ? data.payload.upscaleModels : [];
+                        setAniUpscaleModels(newUpscale);
+                        if (!selectedUpscaleModel && newUpscale.length > 0) {
+                            setSelectedUpscaleModel(newUpscale[0]);
                         }
                     }
-                    if (data.payload.llmModels) {
-                        setAniLlmModels(data.payload.llmModels);
-                        if (!selectedAniLlm && data.payload.llmModels.length > 0) {
-                            setSelectedAniLlm(data.payload.llmModels[0]);
+                    if (data.payload?.llmModels) {
+                        const newLlm = Array.isArray(data.payload.llmModels) ? data.payload.llmModels : [];
+                        setAniLlmModels(newLlm);
+                        if (!selectedAniLlm && newLlm.length > 0) {
+                            setSelectedAniLlm(newLlm[0]);
                         }
                     }
                 } else if (data.type === 'ASSET_LIST') {
-                    setAssetImages(data.payload.images);
+                    setAssetImages(Array.isArray(data.payload?.images) ? data.payload.images : []);
                 } else if (data.type === 'MAGIC_PROMPT_RESULT') {
                     if (data.payload.targetType === 'animation') {
                         if (data.payload.prompt) setAniPrompt(data.payload.prompt);
@@ -2048,7 +2051,7 @@ export default function Dashboard() {
                                                             onChange={(e) => setSelectedAniLlm(e.target.value)}
                                                             className="w-full bg-[#fdead3]/40 border border-[#8c8270]/20 rounded-2xl px-6 py-4 text-xs font-black text-indigo-700 outline-none focus:border-indigo-500 transition-colors shadow-inner"
                                                         >
-                                                            {aniLlmModels.length > 0 ?
+                                                            {(Array.isArray(aniLlmModels) && aniLlmModels.length > 0) ?
                                                                 aniLlmModels.map(m => <option key={m} value={m}>{m}</option>) :
                                                                 <option disabled value="">{isMagicActive ? "Loading models..." : "No LLMs found (Mistral NeMo downloading...)"}</option>
                                                             }
@@ -2536,7 +2539,7 @@ export default function Dashboard() {
                                                         }}
                                                         className="w-full bg-[#fdead3]/40 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-[#4a463d]/80 focus:outline-none appearance-none cursor-pointer hover:bg-[#d4cfc0]/20 transition-colors"
                                                     >
-                                                        {comfyModels.length > 0 ? (
+                                                        {(Array.isArray(comfyModels) && comfyModels.length > 0) ? (
                                                             comfyModels.map(m => {
                                                                 // Custom alias for Specific Models
                                                                 let displayName = m;
