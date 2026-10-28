@@ -2024,7 +2024,7 @@ export default function Dashboard() {
                                                             onChange={(e) => setSelectedModel(e.target.value)}
                                                             className="w-full bg-[#fdead3]/40 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-[#4a463d] outline-none focus:border-[#8c8270]/50 transition-colors"
                                                         >
-                                                            {comfyModels.length > 0 ? comfyModels.map(m => <option key={m} value={m}>{m}</option>) : <option>No models found</option>}
+                                                            {(Array.isArray(comfyModels) && comfyModels.length > 0) ? comfyModels.map(m => <option key={m} value={m}>{m}</option>) : <option>No models found</option>}
                                                         </select>
                                                     </div>
                                                     {/* Motion Module */}
@@ -2035,7 +2035,7 @@ export default function Dashboard() {
                                                             onChange={(e) => setSelectedMotionModule(e.target.value)}
                                                             className="w-full bg-[#fdead3]/40 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-[#4a463d] outline-none focus:border-[#8c8270]/50 transition-colors"
                                                         >
-                                                            {aniMotionModules.length > 0 ? aniMotionModules.map(m => <option key={m} value={m}>{m}</option>) : <option>No motion modules found</option>}
+                                                            {(Array.isArray(aniMotionModules) && aniMotionModules.length > 0) ? aniMotionModules.map(m => <option key={m} value={m}>{m}</option>) : <option>No motion modules found</option>}
                                                         </select>
                                                     </div>
                                                     {/* Animation LLM (V4.7) */}
@@ -2103,7 +2103,7 @@ export default function Dashboard() {
                                                                 onChange={(e) => setSelectedUpscaleModel(e.target.value)}
                                                                 className={`w-full bg-[#fdead3]/40 border border-white/10 rounded-xl px-4 py-2.5 text-[10px] font-bold text-[#4a463d] outline-none focus:border-[#546147]/50 transition-colors ${!aniUpscale ? 'opacity-30' : ''}`}
                                                             >
-                                                                {aniUpscaleModels.length > 0 ? aniUpscaleModels.map(m => <option key={m} value={m}>{m}</option>) : <option>No upscalers found</option>}
+                                                                {(Array.isArray(aniUpscaleModels) && aniUpscaleModels.length > 0) ? aniUpscaleModels.map(m => <option key={m} value={m}>{m}</option>) : <option>No upscalers found</option>}
                                                             </select>
                                                         </div>
 

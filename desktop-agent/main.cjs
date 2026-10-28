@@ -152,6 +152,17 @@ function createWindow() {
         logToFile(`Successfully loaded: ${mainWindow.webContents.getURL()}`);
     });
 
+    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+        logToFile(`[BrowserConsole][Level ${level}] ${message} (${sourceId}:${line})`);
+    });
+
+    // Enable F12 DevTools
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+        if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
+            mainWindow.webContents.toggleDevTools();
+        }
+    });
+
     // 바로 서비스 시작 및 웹뷰(https://srunaic.github.io/design-ai-agent-support) 로드
     logToFile('Starting service directly and loading web view...');
     handleLoginSuccess();
