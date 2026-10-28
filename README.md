@@ -1,6 +1,6 @@
 주의 사항
 
-<h1>
+
    
 design supporter ai 사용시
    
@@ -11,8 +11,6 @@ run_nvidia_gpu 를 반드시 실행 해줘야 합니다. compy ui의 여러 모�
 compy ui portable (은)는 용량이 상당히 크기 때문에 제가 설치 가이드를 올려 드렸습니다. 
 
 아래의 model_guide를 참고하시고 링크 따라 다운로드 해주시면 됩니다.
-
-</h1>
 
 
 # 🎨 Design Supporter AI (V4.6.2)
