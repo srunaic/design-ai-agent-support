@@ -42,12 +42,7 @@ ComfyUI나 파이썬을 따로 설치하고 관리할 필요 없이, 프로그�
 * **포함 내역**: **파이썬 런타임, PyTorch, CUDA 가속 엔진, 고화질 SDXL 체크포인트, 모션 모듈, UI/UX 전용 LoRA 100% 사전 내장**
 * **실행 방법**:
   1. 다운로드한 `Design_Supporter_Portable_v1.0.0.zip`의 압축을 풉니다.
-  2. `Design Supporter.exe`를 더블클릭하면 AI 엔진과 앱이 알아서 자체 구동됩니다! *(추가 설치 제로)*
-
-#### 2. 깃허브 경량 인스톨러 (GitHub Releases)
-* **다운로드 링크**: [GitHub Releases 탭](https://github.com/srunaic/design-ai-agent-support/releases)
-* **포함 내역**: 데스크톱 에이전트 런처 및 인스톨러 (`Design Supporter Setup 1.0.0.exe`)
-
+  2. `Design Supporter.exe`를 더블클릭하면 AI 엔진과 앱이 알아서 자체 구동됩니다! *(추가 설치x)*
 ---
 
 ### ✨ 핵심 주요 기능
