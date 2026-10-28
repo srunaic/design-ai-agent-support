@@ -22,7 +22,8 @@ compy ui portable (은)는 용량이 상당히 크기 때문에 제가 설치 �
 [English](#english) | [한국어](#한국어)
 
 ---
-<img width="1487" height="866" alt="image" src="https://github.com/user-attachments/assets/746ef7d8-58dd-41cf-b7d2-ed373b86f44f" />
+<img width="466" height="350" alt="image" src="https://github.com/user-attachments/assets/ac4014cb-6730-4f8c-92b6-f2a53abb8b6e" />
+
 
 <img width="1904" height="1039" alt="image" src="https://github.com/user-attachments/assets/ae153122-8337-4e6a-b2ad-2d9097cade8a" />
 
