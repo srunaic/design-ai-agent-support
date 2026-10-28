@@ -460,8 +460,9 @@ function startBridge() {
 
         ws.on('close', () => logToFile('Bridge connection closed'));
     });
-
-    wss.on('error', (err) => logToFile(`Bridge Server ERROR: ${err.message}`));
+    } catch (err) {
+        logToFile(`Failed to start Bridge Server: ${err.message}`);
+    }
 }
 
 const ASSETS_PATH = path.resolve(__dirname, '..', 'assets');
